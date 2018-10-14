@@ -6,7 +6,7 @@ This is the git repository for **Assignment 2 - MineSweeper, Inference-Informed 
 #### File Structure  
 ```
 ├── codes # is for storing codes
-│   ├── frame.py
+│   └── frame.py
 ├── docs # is for storing documents (eg. API documents, reports).  
 │   └── description.md
 └── README.md
