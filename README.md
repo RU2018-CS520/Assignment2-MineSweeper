@@ -1,7 +1,7 @@
 # Assignment2-MineSweeper
 
 #### Description  
-This is the git repository for **Assignment 2 - MineSweeper, Inference-Informed Action **. We mainly code in Python in this project.
+This is the git repository for **Assignment 2 - MineSweeper, Inference-Informed Action**. We mainly code in Python in this project.
 
 #### File Structure  
 ```
