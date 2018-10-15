@@ -62,6 +62,9 @@ class player(object):
 
 	#set (row, col) flag
 	def setBlockFlag(self, row, col, iNebr = None):
+		print((row, col))
+		print(p.m.left)
+		p.m.visualize()
 		if self.alive:
 			self.m.flag[row, col] = True
 			chainFlag = False
@@ -80,6 +83,9 @@ class player(object):
 
 	#set (row, col) safe
 	def setBlockSafe(self, row, col, iNebr = None):
+		print((row, col))
+		print(p.m.left)
+		p.m.visualize()
 		if self.alive:
 			self.m.safe[row, col] = True
 
@@ -122,7 +128,6 @@ class player(object):
 
 	#explore (row, col) and update neighbor's left
 	def exploreBlock(self, row, col, iNebr = None, oNebr = False):
-		print((row, col))
 		if self.alive:
 			tempHint = self.m.explore(row, col, blind = self.m.blind, optimistic = self.m.optimistic, cautious = self.m.cautious)
 			chainFlag = False
@@ -165,13 +170,9 @@ class player(object):
 def makeAMove(p):
 	startPos = p.startList.pop()
 	tempHint = p.m.start(*startPos)
-	
-	chainFlag = False
-	tempPos = startPos
+	chainFlag = p.updateChain(startPos[0], startPos[1])
+
 	while not chainFlag:
-		print(tempPos)
-		print(chainFlag)
-		chainFlag = p.updateChain(tempPos[0], tempPos[1])
 		tempPos = p.startList.pop()
 		tempHint, tempChainFlag, neighbor = p.exploreBlock(*tempPos, oNebr = True)
 		if tempHint is False:
