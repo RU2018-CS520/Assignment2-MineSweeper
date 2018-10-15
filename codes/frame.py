@@ -8,7 +8,7 @@ import tile
 
 class board(object):
 	#a minesweeper board
-	def __init__(self, rows = 10, cols = 10, mines = 10):
+	def __init__(self, rows = 10, cols = 10, mines = 10, blind = False, optimistic = False, cautious = False):
 		#int rows in [2 : inf]: size of board
 		#int cols in [2 : inf]: size of board
 		#int mines in [1 : rows*cols-1]: the number of mines
@@ -18,21 +18,24 @@ class board(object):
 		self.cols = cols
 		self.mines = mines #TODO: maybe there should be a 'if mines > rows*cols:' #actually mines > 0.23 rows*cols will be too hard
 		self.newGame = True
+		self.blind = blind
+		self.optimistic = optimistic
+		self.cautious = cautious
 
 		#basic board
 		self.covered = np.full((self.rows, self.cols), True, dtype = np.bool)
-		self.mine = np.zeros((self.rows, self.cols), dtype = np.bool)
-		self.clue = np.zeros((self.rows, self.cols), dtype = np.uint8)
+		self._mine = np.zeros((self.rows, self.cols), dtype = np.bool)
+		self._clue = np.zeros((self.rows, self.cols), dtype = np.uint8)
 
 		#player attribute
-		self.mineCount = 0
+		self.flagCount = 0
 		self.blockCount = 0
 
 		#player board
 		self.flag = np.zeros((self.rows, self.cols), dtype = np.bool)
 		self.safe = np.zeros((self.rows, self.cols), dtype = np.bool)
-		self.hint = np.full((self.rows, self.cols), 255, dtype = np.uint8)
-		self.warn = np.full((self.rows, self.cols), 255, dtype = np.uint8)
+		self.hint = np.full((self.rows, self.cols), 127, dtype = np.uint8)
+		self.warn = np.full((self.rows, self.cols), 127, dtype = np.uint8)
 		self.left = np.full((self.rows, self.cols), 8, dtype = np.uint8)
 		self.done = np.zeros((self.rows, self.cols), dtype = np.bool)
 
@@ -56,20 +59,15 @@ class board(object):
 		#int row in [0 : rows-1]: start position
 		#int col in [0 : cols-1]: start position
 
-		#open block
-		self.safe[row, col] = True
-		self.covered[row, col] = False
-		self.blockCount = self.blockCount + 1
-
 		#generate board
 		self.build(row, col)
 
 		#get feedback
-		self.hint[row, col] = self.explore(row, col)
+		self.hint[row, col] = self.explore(row, col, blind = self.blind, optimistic = self.optimistic, cautious = self.cautious)
 		self.warn[row, col] = self.hint[row, col] #- count(neighbor, 'flag')
 		for index in self.getNeighbor(row, col):
 			self.left[index] = self.left[index] - 1
-		return warn[row, col]
+		return self.hint[row, col]
 
 
 	def explore(self, row, col, blind = False, optimistic = False, cautious = False):
@@ -79,12 +77,14 @@ class board(object):
 		#bool optimistic: True: sometimes return a smaller clue; False: normal return
 		#bool cautious: True: sometimes return a bigger clue; False: normal return
 		
+		self.covered[row, col] = False
+		self.blockCount = self.blockCount + 1
 		#death check
-		if self.mine[row, col]:
+		if self._mine[row, col]:
 			return False
 		
 		#get clue
-		clue = self.clue[row, col]
+		hint = self._clue[row, col]
 		#TODO: blind, optimistic, cautious 
 		if blind:
 			pass
@@ -92,7 +92,7 @@ class board(object):
 			pass
 		if cautious:
 			pass
-		return clue
+		return hint
 
 
 	def visualize(self, beacon = 16, cheat = False):
@@ -102,7 +102,7 @@ class board(object):
 		image = np.zeros((self.rows*16, self.cols*16, 3), dtype = np.uint8)
 		for row in range(self.rows):
 			for col in range(self.cols):
-				image[row*16 : row*16+16, col*16 : col*16+16] = self.tile(covered = self.covered[row, col], mine = self.mine[row, col], clue = self.clue[row, col], hint = self.hint[row, col], flag = self.flag[row, col], beacon = beacon and not (row%beacon and col%beacon), cheat = cheat)
+				image[row*16 : row*16+16, col*16 : col*16+16] = self.tile(covered = self.covered[row, col], mine = self._mine[row, col], clue = self._clue[row, col], hint = self.hint[row, col], flag = self.flag[row, col], beacon = beacon and not (row%beacon and col%beacon), cheat = cheat)
 		img = Image.fromarray(image) 
 		img = ImageChops.invert(img)
 		plt.imshow(img)
@@ -110,16 +110,16 @@ class board(object):
 		return img
 
 
-	def count(self, row, col, key, inNeighbor = None, outNeighbor = False):
+	def count(self, row, col, key, iNebr = None, oNebr = False):
 		#int row in [0 : rows-1]: position x
 		#int col in [0 : cols-1]: position y
-		#str key in {'covered', 'mine', 'flag', 'safe'}: key to count
+		#str key in {'covered', '_mine', 'flag', 'safe'}: key to count
 
 		#check key
 		if key == 'covered':
 			mat = self.covered
-		elif key == 'mine':
-			mat = self.mine
+		elif key == '_mine':
+			mat = self._mine
 		elif key == 'flag':
 			mat = self.flag
 		elif key == 'safe':
@@ -129,8 +129,8 @@ class board(object):
 			return 0
 		
 		#get neighbor
-		if inNeighbor:
-			neighbor = inNeighbor
+		if iNebr:
+			neighbor = iNebr
 		else:
 			neighbor = self.getNeighbor(row, col)
 
@@ -140,7 +140,7 @@ class board(object):
 			if mat[index]:
 				count = count + 1
 		
-		if outNeighbor:
+		if oNebr:
 			return (count, neighbor)
 		else:
 			return count
@@ -160,14 +160,14 @@ class board(object):
 		minePos = random.sample(list(range(self.rows*self.cols - bool(row and col))), self.mines)
 		for index in minePos:
 			if index >= startPos:
-				self.mine[self.ord2xy(index+1)] = True
+				self._mine[self.ord2xy(index+1)] = True
 			else:
-				self.mine[self.ord2xy(index)] = True
+				self._mine[self.ord2xy(index)] = True
 		
 		#init clue
 		for row in range(self.rows):
 			for col in range(self.cols):
-				self.clue[row, col] = self.count(row, col, 'mine')
+				self._clue[row, col] = self.count(row, col, '_mine')
 
 		#done
 		self.newGame = False
