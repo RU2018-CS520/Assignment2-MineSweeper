@@ -355,7 +355,7 @@ class tile(object):
 					block[self.mineMainShape] = self.mineMainColor
 					block[self.mineSubShape] = self.mineSubColor
 					block[self.blockWrongShape] = self.blockWrongColor
-			if cheat: #get the whole board
+			elif cheat: #get the whole board
 				if mine: #covered cheat mine
 					block[self.mineMainShape] = self.mineMainColor
 					block[self.mineSubShape] = self.mineSubColor
