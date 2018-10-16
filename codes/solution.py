@@ -3,12 +3,12 @@ import numpy as np
 import frame
 
 class player(object):
+	#player view
 	def __init__(self, m, chain = False):
 		self.m = m
 		self.chain = chain
 		self.alive = True
 		self.startList = [(0, 0), (self.m.rows-1, 0), (0, self.m.cols-1), (self.m.rows-1, self.m.cols-1), (0, self.m.cols//2), (self.m.rows//2, 0), (self.m.rows//2, self.m.cols-1), (self.m.rows-1, self.m.cols//2)]
-		print(self.startList)
 		self.prob = np.full((self.m.rows, self.m.cols, 9), np.nan, dtype = np.float16)
 
 		self.safeWaiting = set()
@@ -16,12 +16,13 @@ class player(object):
 
 		return
 
+	#update warn
 	def updateHintBlock(self, row, col, iNebr = None):
 		flagCount, neighbor = self.m.count(row, col, 'flag', iNebr = iNebr, oNebr = True)
 		self.m.warn[row, col] = self.m.hint[row, col] - flagCount
-		self.m.safe[row, col] = True
 		return
 
+	#assume (row, col) is safe, explore it
 	def hintSafeBlock(self, row, col, iNebr = None):
 		if self.alive:
 			self.m.safe[row, col] = True
@@ -38,10 +39,12 @@ class player(object):
 		else:
 			return False
 
+	#update warn
 	def updateFlagBlock(self, row, col, iNebr = None):
 		self.m.warn[row, col] = self.m.warn[row, col] - 1
 		return
 
+	#assume (row, col) is mine, flag it
 	def flagMineBlock(self, row, col, iNebr = None):
 		if self.alive:
 			self.m.flag[row, col] = True
@@ -58,7 +61,6 @@ class player(object):
 			return False
 
 
-
 	#return neighbor
 	def checkInNeighbor(self, row, col, iNebr):
 		if iNebr is None:
@@ -71,7 +73,7 @@ class player(object):
 	def exploreBlock(self, row, col, iNebr = None, oNebr = False):
 #		print('explore %d, %d' %(row, col))
 		if self.alive:
-			tempHint = self.m.explore(row, col, blind = self.m.blind, optimistic = self.m.optimistic, cautious = self.m.cautious)
+			tempHint = self.m.explore(row, col)
 			if tempHint is False:
 				print('E: solution.player.exploreBlock. What a Terrible Failure!')
 				self.alive = False
@@ -96,7 +98,7 @@ class player(object):
 		else:
 			return tempHint
 
-
+	#calculate neighbor's prob
 	def updateNeighborP(self, row, col, iNebr = None):
 		if self.m.done[row, col]:
 			return False
@@ -118,6 +120,7 @@ class player(object):
 					chainFlag = True
 		return chainFlag
 
+#stat the game
 def firstStep(p):
 	startPos = p.startList.pop()
 	tempHint = p.m.start(*startPos)
@@ -128,12 +131,12 @@ def firstStep(p):
 		p.hintSafeBlock(*tempPos)
 	return
 
+#keep looping with bookkeeping
 def stepByStep(p):
 	while p.alive and (p.safeWaiting or p.flagWaiting):
 		while p.alive and p.safeWaiting:
 			tempPos = p.safeWaiting.pop()
 			p.hintSafeBlock(*tempPos)
-		print(p.flagWaiting)
 		while p.alive and p.flagWaiting:
 			tempPos = p.flagWaiting.pop()
 			p.flagMineBlock(*tempPos)
@@ -147,10 +150,10 @@ if __name__ == '__main__':
 	res = firstStep(p)
 	res = stepByStep(p)
 	print(res)
-	m.visualize()
-	m.visualize(cheat = True)
 	print(m.hint)
 	print(m.warn)
 	print(m.left)
 	print(m.blockCount)
 	print(m.flagCount)
+	m.visualize()
+	m.visualize(cheat = True)

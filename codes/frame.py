@@ -12,6 +12,9 @@ class board(object):
 		#int rows in [2 : inf]: size of board
 		#int cols in [2 : inf]: size of board
 		#int mines in [1 : rows*cols-1]: the number of mines
+		#bool blind: True: sometimes return 255 instead of clue; False: normal return
+		#bool optimistic: True: sometimes return a smaller clue; False: normal return
+		#bool cautious: True: sometimes return a bigger clue; False: normal return
 
 		#basic attribute
 		self.rows = rows
@@ -40,6 +43,7 @@ class board(object):
 		self.left = np.full((self.rows, self.cols), 8, dtype = np.uint8) #neighbor's covered but not flaged
 		self.done = np.zeros((self.rows, self.cols), dtype = np.bool) #all neighbor explored or flaged
 
+		#process left
 		self.left[0, :] = 5
 		self.left[self.rows-1, :] = 5
 		self.left[:, 0] = 5
@@ -53,27 +57,29 @@ class board(object):
 		return
 
 	#important functions
+	#start at (row, col), NOTE: start block must be safe
 	def start(self, row, col):
 		#int row in [0 : rows-1]: start position
 		#int col in [0 : cols-1]: start position
+		#return:
+		#int hint in [0 : 8]: hint of start block (row, col)
 
 		#generate board
 		self.build(row, col)
 
 		#get feedback
-		self.hint[row, col] = self.explore(row, col, blind = self.blind, optimistic = self.optimistic, cautious = self.cautious)
+		self.hint[row, col] = self.explore(row, col)
 		self.warn[row, col] = self.hint[row, col] #- count(neighbor, 'flag')
 		for pos, index in self.getNeighbor(row, col):
 			self.left[pos] = self.left[pos] - 1
 		return self.hint[row, col]
 
-
-	def explore(self, row, col, blind = False, optimistic = False, cautious = False):
+	#open (row, col)
+	def explore(self, row, col):
 		#int row in [0 : rows-1]: position x
 		#int col in [0 : cols-1]: position y
-		#bool blind: True: sometimes return 255 instead of clue; False: normal return
-		#bool optimistic: True: sometimes return a smaller clue; False: normal return
-		#bool cautious: True: sometimes return a bigger clue; False: normal return
+		#return
+		#int hint [0 : 8]: this block's hint. False: dead
 		
 		self.covered[row, col] = False
 		self.blockCount = self.blockCount + 1
@@ -84,18 +90,20 @@ class board(object):
 		#get clue
 		hint = self._clue[row, col]
 		#TODO: blind, optimistic, cautious 
-		if blind:
+		if self.blind:
 			pass
-		if optimistic:
+		if self.optimistic:
 			pass
-		if cautious:
+		if self.cautious:
 			pass
 		return hint
 
-
+	#print the board
 	def visualize(self, beacon = 16, cheat = False):
 		#int beacon [1 : inf]: interval of beacons; 0: no beacon
 		#bool cheat: True: god view; False: player view
+		#return
+		#PIL.Image image: board image
 		
 		image = np.zeros((self.rows*16, self.cols*16, 3), dtype = np.uint8)
 		for row in range(self.rows):
@@ -107,11 +115,13 @@ class board(object):
 		plt.show()
 		return img
 
-
+	#count neighbor block's key
 	def count(self, row, col, key, iNebr = None, oNebr = False):
 		#int row in [0 : rows-1]: position x
 		#int col in [0 : cols-1]: position y
 		#str key in {'covered', '_mine', 'flag', 'safe'}: key to count
+		#list iNebr with element ((row, col), index): input processed neighbor. None: auto-generate neighbor
+		#bool oNebr: True: also return neighbor; False: only return count
 
 		#check key
 		if key == 'covered':
@@ -144,6 +154,7 @@ class board(object):
 			return count
 
 	#tool functions
+	#construct mine distribution
 	def build(self, row = None, col = None):
 		#int row in [0 : rows-1]: start position
 		#int col in [0 : cols-1]: start position
@@ -171,20 +182,22 @@ class board(object):
 		self.newGame = False
 		return
 
-
+	#transform (x, y) to num
 	def xy2ord(self, row, col):
 		#int row in [0 : rows-1]: position x
 		#int col in [0 : cols-1]: position y
 		return row * self.cols + col
-	
+	#transform num to (x, y)
 	def ord2xy(self, num):
 		#int num in [0 : rows*cols-1]: position number
 		return (num // self.cols, num % self.cols)
 
-
+	#generate neighbor of (row, col)
 	def getNeighbor(self, row, col):
 		#int row in [0 : rows-1]: position x
 		#int col in [0 : cols-1]: position y
+		#return:
+		#list neighbor with element ((row, col), index): this block's neighbor
 
 		#get valid rows
 		if row == 0:
