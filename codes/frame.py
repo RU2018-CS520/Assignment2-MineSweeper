@@ -21,6 +21,7 @@ class board(object):
 		self.blind = blind
 		self.optimistic = optimistic
 		self.cautious = cautious
+		self.tile = tile.tile()
 
 		#basic board
 		self.covered = np.full((self.rows, self.cols), True, dtype = np.bool)
@@ -34,12 +35,10 @@ class board(object):
 		#player board
 		self.flag = np.zeros((self.rows, self.cols), dtype = np.bool)
 		self.safe = np.zeros((self.rows, self.cols), dtype = np.bool)
-		self.hint = np.full((self.rows, self.cols), 127, dtype = np.uint8)
-		self.warn = np.full((self.rows, self.cols), 127, dtype = np.uint8)
-		self.left = np.full((self.rows, self.cols), 8, dtype = np.uint8)
-		self.done = np.zeros((self.rows, self.cols), dtype = np.bool)
-
-		self.tile = tile.tile()
+		self.hint = np.full((self.rows, self.cols), 127, dtype = np.uint8) #clue player got
+		self.warn = np.full((self.rows, self.cols), 127, dtype = np.uint8) #clue - neighbor's flag
+		self.left = np.full((self.rows, self.cols), 8, dtype = np.uint8) #neighbor's covered but not flaged
+		self.done = np.zeros((self.rows, self.cols), dtype = np.bool) #all neighbor explored or flaged
 
 		self.left[0, :] = 5
 		self.left[self.rows-1, :] = 5
@@ -53,7 +52,6 @@ class board(object):
 
 		return
 
-
 	#important functions
 	def start(self, row, col):
 		#int row in [0 : rows-1]: start position
@@ -65,8 +63,8 @@ class board(object):
 		#get feedback
 		self.hint[row, col] = self.explore(row, col, blind = self.blind, optimistic = self.optimistic, cautious = self.cautious)
 		self.warn[row, col] = self.hint[row, col] #- count(neighbor, 'flag')
-		for index in self.getNeighbor(row, col):
-			self.left[index] = self.left[index] - 1
+		for pos, index in self.getNeighbor(row, col):
+			self.left[pos] = self.left[pos] - 1
 		return self.hint[row, col]
 
 
@@ -136,8 +134,8 @@ class board(object):
 
 		#count
 		count = 0
-		for index in neighbor:
-			if mat[index]:
+		for pos, index in neighbor:
+			if mat[pos]:
 				count = count + 1
 		
 		if oNebr:
@@ -158,11 +156,11 @@ class board(object):
 
 		#init mines
 		minePos = random.sample(list(range(self.rows*self.cols - bool(row and col))), self.mines)
-		for index in minePos:
-			if index >= startPos:
-				self._mine[self.ord2xy(index+1)] = True
+		for pos in minePos:
+			if pos >= startPos:
+				self._mine[self.ord2xy(pos+1)] = True
 			else:
-				self._mine[self.ord2xy(index)] = True
+				self._mine[self.ord2xy(pos)] = True
 		
 		#init clue
 		for row in range(self.rows):
@@ -190,23 +188,24 @@ class board(object):
 
 		#get valid rows
 		if row == 0:
-			nRow = [0, 1]
+			nRow = [(0, 1), (1, 2)]
 		elif row == self.rows-1:
-			nRow = [row-1, row]
+			nRow = [(row-1, 0), (row, 1)]
 		else:
-			nRow = [row-1, row, row+1]
+			nRow = [(row-1, 0), (row, 1), (row+1, 2)]
 
 		#get valid cols
 		if col == 0:
-			nCol = [0, 1]
+			nCol = [(0, 1), (1, 2)]
 		elif col == self.cols-1:
-			nCol = [col-1, col]
+			nCol = [(col-1, 0), (col, 1)]
 		else:
-			nCol = [col-1, col, col+1]
+			nCol = [(col-1, 0), (col, 1), (col+1, 2)]
 
 		#delete itself
 		neighbor = list(itertools.product(nRow, nCol))
-		neighbor.remove((row, col))
+		neighbor = [((neighbor[i][0][0], neighbor[i][1][0]), neighbor[i][0][1]*3+neighbor[i][1][1]) for i in range(len(neighbor))]
+		neighbor.remove(((row, col), 4))
 		return neighbor
 
 
@@ -215,3 +214,4 @@ if __name__ == '__main__':
 	m.start(m.rows-1,m.cols//2)
 	print(m.left)
 	m.visualize(cheat = True)
+	print(m.getNeighbor(0,0))
