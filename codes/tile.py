@@ -5,7 +5,8 @@ from PIL import Image, ImageChops
 class tile(object):
 	def __init__(self):
 		self.size = 16
-
+		
+		#color
 		self.backColor = [63, 63, 63]
 		self.failedBackColor = [0, 255, 255]
 		self.uncoveredGridColor = [127, 127, 127]
@@ -29,6 +30,7 @@ class tile(object):
 
 		self.blockWrongColor = [0, 255, 255]
 
+		#shape
 		self.backShape = np.asarray([				[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 													[0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
 													[0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -337,6 +339,7 @@ class tile(object):
 													[0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0],
 													[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]], dtype = np.bool)
 
+	#paint a tile
 	def __call__(self, covered, mine, clue, hint, flag, beacon = False, cheat = False):
 		
 		block = np.zeros((self.size, self.size, 3), dtype = np.uint8)
