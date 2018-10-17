@@ -40,7 +40,8 @@ class board(object):
 		self.safe = np.zeros((self.rows, self.cols), dtype = np.bool)
 		self.hint = np.full((self.rows, self.cols), 127, dtype = np.uint8) #clue player got
 		self.warn = np.full((self.rows, self.cols), 127, dtype = np.uint8) #clue - neighbor's flag
-		self.left = np.full((self.rows, self.cols), 8, dtype = np.uint8) #neighbor's covered but not flaged
+		self.nebr = np.full((self.rows, self.cols), 1, dtype = np.uint64) #hash of neighbor's covered but not flaged
+		self.left = np.full((self.rows, self.cols), 8, dtype = np.uint8) #number of neighbor's covered but not flaged
 		self.done = np.zeros((self.rows, self.cols), dtype = np.bool) #all neighbor explored or flaged
 
 		#process left
@@ -53,6 +54,20 @@ class board(object):
 		self.left[0, self.cols-1] = 3
 		self.left[self.rows-1, 0] = 3
 		self.left[self.rows-1, self.cols-1] = 3
+
+		#process nebr
+		hashCore = [[ 2,  3,  5, 7,  11],
+					[13, 17, 19, 23, 29],
+					[31, 37, 41, 43, 47],
+					[53, 59, 61, 67, 71],
+					[73, 79, 83, 89, 97]]
+		self.hashCore = np.asarray(hashCore, dtype = np.uint8)
+
+		for row in range(self.rows):
+			for col in range(self.cols):
+				neighbor = self.getNeighbor(row, col)
+				for pos, index in neighbor:
+					self.nebr[row, col] = self.nebr[row, col] * self.hashCore[pos[0]%5, pos[1]%5]
 
 		return
 
@@ -71,6 +86,7 @@ class board(object):
 		self.hint[row, col] = self.explore(row, col)
 		self.warn[row, col] = self.hint[row, col] #- count(neighbor, 'flag')
 		for pos, index in self.getNeighbor(row, col):
+			self.nebr[pos] = self.nebr[pos] // self.hashCore[row%5, col%5]
 			self.left[pos] = self.left[pos] - 1
 		return self.hint[row, col]
 
