@@ -181,7 +181,7 @@ class player(object):
 		self.updateNeighborP(*startPos)
 	
 		while self.alive and not (self.safeWaiting or self.flagWaiting):
-			self.stepOut()
+			self.leapOfFaith()
 		return self.alive
 	
 	#1st arm, keep looping with bookkeeping
@@ -197,13 +197,26 @@ class player(object):
 
 	#2nd arm, solve A+B=1 A+B+C=2
 	def solveOverride(self):
-		pass
+		solveFlag = False
+		if self.checkOverride():
+			self.override.sort()
+			effectiveLen = 0
+			while self.override:
+				tempLen, pPos, cPosList = override.pop(0)
+				#check confilct
+				#if not conflict:
+				# copy prob
+				#if conflict:
+				# try subset
+
+		return solveFlag
+
 
 	#final arm, ready to die
-	def stepOut(self):
+	def leapOfFaith(self):
 		step, prob = self.getNext()
 		print(step)
-		print('W: solution.player.stepOut. risk (%d, %d)' %(step[0], step[1]))
+		print('W: solution.player.leapOfFaith. risk (%d, %d)' %(step[0], step[1]))
 		if prob * 2 < 1:
 			self.hintSafeBlock(*step)
 		else:
@@ -221,7 +234,7 @@ if __name__ == '__main__':
 	while p.alive and ((p.m.blockCount + p.m.flagCount) < (p.m.rows * p.m.cols)) and (p.m.flagCount < p.m.mines):
 		res = p.stepByStep()
 		while p.alive and ((p.m.blockCount + p.m.flagCount) < (p.m.rows * p.m.cols)) and (p.m.flagCount < p.m.mines) and not (p.safeWaiting or p.flagWaiting):
-			p.stepOut()
+			p.leapOfFaith()
 	# print(res)
 	print(m.hint)
 	print(m.warn)
