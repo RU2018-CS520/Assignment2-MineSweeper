@@ -1,4 +1,5 @@
 import numpy as np
+import itertools
 
 import frame
 
@@ -110,45 +111,114 @@ class player(object):
 
 	#calculate neighbor's prob
 	def updateNeighborP(self, row, col, iNebr = None):
+		#return: True: there is a new block waiting for hint or flag; False: no new hint or flag block
 		if self.m.done[row, col]:
 			return False
 		
 		neighbor = self.checkInNeighbor(row, col, iNebr = iNebr)
 		tempProb = self.m.warn[row, col] / self.m.left[row, col]
-		chainFlag = False
+		updateFlag = False
 		for pos, index in neighbor:
 			if self.m.covered[pos] and not self.m.flag[pos]:
 				self.prob[pos][8-index] = tempProb
 				if tempProb == 1:
 					self.flagWaiting.add(pos)
-					chainFlag = True
+					updateFlag = True
 				elif tempProb == 0:
 					self.safeWaiting.add(pos)
-					chainFlag = True
-		return chainFlag
+					updateFlag = True
+		return updateFlag
 
 	#a block's effective neighbors are all his parent's effective neighbors
 	def checkOverride(self):
+		#return override relation
 		self.override = []
-		for row in self.m.rows:
-			for col in self.m.cols:
-				if self.m.done[row, col]:
+		#for each inconclusive hint block
+		for row in range(self.m.rows):
+			for col in range(self.m.cols):
+				if self.m.done[row, col] or self.m.covered[row, col]:
 					continue
 				childList = []
-				for childRow in range(row-2, row+2):
+				#check 5*5 neighbor inconclusive hint blocks
+				for childRow in range(row-2, row+3):
 					if childRow > self.m.rows-1 or childRow < 0:
 						continue
-					for childCol in range(col-2, col+2):
+					for childCol in range(col-2, col+3):
 						if childCol > self.m.cols-1 or childCol < 0:
 							continue
-						if self.m.done[childRow, childCol]:
+						if childRow == row and childCol == col:
 							continue
+						if self.m.done[childRow, childCol] or self.m.covered[childRow, childCol]:
+							continue
+						#if this block % neighbor == 0, neighbor's neighbor is in this neighbor
 						if self.m.nebr[row, col] % self.m.nebr[childRow, childCol] == 0:
 							childList.append((childRow, childCol))
 				if childList:
 					self.override.append((len(childList), (row, col), childList))
 		return self.override
 
+	#solve override based on copy prob from child
+	def solveOverride(self, tempLenLim, pPos, cPosList):
+		#return: True: new blocks solved; False: nothing
+		for cPosListLim in itertools.combinations(cPosList, tempLenLim):
+			prob = np.zeros((3,3), dtype = np.float16)
+			mark = np.zeros((3,3), dtype = np.bool)
+			conflictFlag = False
+			pLeftNebr = []
+			sumProb = 0.
+			#copy prob
+			for cPos in cPosListLim:
+				conflictFlag, prob, mark = self.fillCProb(pPos, cPos, prob, mark)
+				if conflictFlag:
+					break
+			if conflictFlag:
+				continue
+			#calculate new left prob
+			pNeighbor = self.m.getNeighbor(*pPos)
+			for pos, index in pNeighbor:
+				relativeRow = pos[0] - pPos[0] + 1
+				relativeCol = pos[1] - pPos[1] + 1
+				if self.m.covered[pos] and not self.m.flag[pos]:
+					if mark[relativeRow, relativeCol]:
+						sumProb = sumProb + prob[relativeRow, relativeCol]
+					else: #not marked, p's unique neighbor
+						pLeftNebr.append(pos)
+			if pLeftNebr:
+				pLeftWarn = self.m.warn[pPos] - sumProb
+				pLeftProb = pLeftWarn / len(pLeftNebr)
+				if pLeftProb >= 1: #TODO: could pLeftProb > 1?
+					# print(pLeftNebr)
+					# print(pLeftProb)
+					# print(cPosListLim)
+					self.flagWaiting.update(pLeftNebr)
+					return True
+				elif pLeftProb <= 0: #TODO: could pLeftProb < 0?
+					# print(pLeftNebr)
+					# print(pLeftProb)
+					# print(cPosListLim)
+					self.safeWaiting.update(pLeftNebr)
+					return True
+			else: #p have the same neighbor with childs, maybe useful for blind, optimistc, cautious
+				continue
+		return False
+
+	#fill child's prob
+	def fillCProb(self, pPos, cPos, prob, mark):
+		#return: True: there is a conflict prob; False: no conflick
+		cProb = self.m.warn[cPos] / self.m.left[cPos]
+		cNeighbor = self.m.getNeighbor(*cPos)
+		for pos, index in cNeighbor:
+			relativeRow = pos[0] - pPos[0] + 1
+			relativeCol = pos[1] - pPos[1] + 1
+			if self.m.covered[pos] and not self.m.flag[pos]:
+				if mark[relativeRow, relativeCol]:
+					if cProb != prob[relativeRow, relativeCol]:
+						return True, prob, mark
+				prob[relativeRow, relativeCol] = cProb
+				mark[relativeRow, relativeCol] = True
+		return False, prob, mark
+
+	#get a safer next block to open
 	def getNext(self):
 		completeRate = (self.m.blockCount + self.m.flagCount) / (self.m.rows * self.m.cols)
 		defaultProb = (self.m.mines - self.m.flagCount) / (self.m.rows * self.m.cols - self.m.blockCount)
@@ -196,26 +266,32 @@ class player(object):
 		return self.alive
 
 	#2nd arm, solve A+B=1 A+B+C=2
-	def solveOverride(self):
+	def stepAside(self):
 		solveFlag = False
+		#get override relation
 		if self.checkOverride():
-			self.override.sort()
-			effectiveLen = 0
+			self.override.sort() #from simple to complex
+			effectiveLen = 25
+			#solve override relation
 			while self.override:
-				tempLen, pPos, cPosList = override.pop(0)
-				#check confilct
-				#if not conflict:
-				# copy prob
-				#if conflict:
-				# try subset
-
+				tempLen, pPos, cPosList = self.override.pop(0)
+				if effectiveLen < tempLen: #discard more complex override
+					break
+				#if conflict, try subset
+				for tempLenLim in range(tempLen, 0, -1):
+					solved = self.solveOverride(tempLenLim, pPos, cPosList)
+					if solved:
+						print('stepAside (%d, %d)' %(pPos[0], pPos[1]))
+						# self.m.visualize()
+						# self.m.visualize(cheat = True)
+					#	effectiveLen = tempLen #no more complex relation need to do
+						solveFlag = True
+						break
 		return solveFlag
-
 
 	#final arm, ready to die
 	def leapOfFaith(self):
 		step, prob = self.getNext()
-		print(step)
 		print('W: solution.player.leapOfFaith. risk (%d, %d)' %(step[0], step[1]))
 		if prob * 2 < 1:
 			self.hintSafeBlock(*step)
@@ -228,17 +304,22 @@ class player(object):
 
 
 if __name__ == '__main__':
-	m = frame.board(64, 64, 512)
+	m = frame.board(64, 64, 800)
 	p = player(m, chain = True)
 	res = p.firstStep()
 	while p.alive and ((p.m.blockCount + p.m.flagCount) < (p.m.rows * p.m.cols)) and (p.m.flagCount < p.m.mines):
 		res = p.stepByStep()
+		res = p.stepAside()
+		if res:
+			continue
 		while p.alive and ((p.m.blockCount + p.m.flagCount) < (p.m.rows * p.m.cols)) and (p.m.flagCount < p.m.mines) and not (p.safeWaiting or p.flagWaiting):
 			p.leapOfFaith()
+			if p.alive:
+				res = p.stepAside()
 	# print(res)
-	print(m.hint)
-	print(m.warn)
-	print(m.left)
+	# print(m.hint)
+	# print(m.warn)
+	# print(m.left)
 	# print(m.nebr)
 	# print(m.done)
 	print(m.blockCount)
