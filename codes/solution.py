@@ -16,6 +16,8 @@ class player(object):
 		self.safeWaiting = set()
 		self.flagWaiting = set()
 		self.override = []
+		self.twin = set()
+		self.bros = set()
 
 		return
 
@@ -129,6 +131,7 @@ class player(object):
 					updateFlag = True
 		return updateFlag
 
+	#override function
 	#a block's effective neighbors are all his parent's effective neighbors
 	def checkOverride(self):
 		#return override relation
@@ -187,15 +190,9 @@ class player(object):
 				pLeftWarn = self.m.warn[pPos] - sumProb
 				pLeftProb = pLeftWarn / len(pLeftNebr)
 				if pLeftProb >= 1: #TODO: could pLeftProb > 1?
-					# print(pLeftNebr)
-					# print(pLeftProb)
-					# print(cPosListLim)
 					self.flagWaiting.update(pLeftNebr)
 					return True
 				elif pLeftProb <= 0: #TODO: could pLeftProb < 0?
-					# print(pLeftNebr)
-					# print(pLeftProb)
-					# print(cPosListLim)
 					self.safeWaiting.update(pLeftNebr)
 					return True
 			else: #p have the same neighbor with childs, maybe useful for blind, optimistc, cautious
@@ -218,6 +215,40 @@ class player(object):
 				mark[relativeRow, relativeCol] = True
 		return False, prob, mark
 
+
+	#twin function
+	#a block's hint is equal to its neighbor's
+	def checkTwinBros(self):
+		self.twin = set()
+		self.bros = set()
+		for row in range(self.m.rows):
+			for col in range(self.cols):
+				if self.m.done[row, col] or self.m.covered[row, col]:
+					continue
+				neighbor = self.m.getNeighbor(row, col)
+				for bPos, index in neighbor:
+					if self.m.done[bPos] or self.m.covered[bPos]:
+						continue
+					if self.m.hint[row, col] == self.m.hint[bPos]:
+						tempTwin = frozenset([((row, col), bPos)])
+						self.twin.add(tempTwin)
+					elif self.m.hint[row, col] == self.m.hint[bPos] + 1:
+						tempBros = [(row, col), bPos]
+						self.bros.add(tempBros)
+		return bool(self.twin) or bool(self.bros)
+
+	#solve twin relation based on symmetric
+	def solveTwin(self, oPos, yPos):
+		pass
+		#fill 4*4 board
+		#check unique neighbor
+		#compare unique neighbor
+
+	#solve bros relation based on symmetric
+	def solveBros(self, oPos, yPos):
+		pass
+
+	#leap of faith function
 	#get a safer next block to open
 	def getNext(self):
 		completeRate = (self.m.blockCount + self.m.flagCount) / (self.m.rows * self.m.cols)
@@ -288,6 +319,13 @@ class player(object):
 						solveFlag = True
 						break
 		return solveFlag
+
+	#3rd arm, solve F322F
+	def stayInStep(self):
+		pass
+		#checkTwinBros
+		#solveTwin
+		#solveBros
 
 	#final arm, ready to die
 	def leapOfFaith(self):
