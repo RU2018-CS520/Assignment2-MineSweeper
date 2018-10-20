@@ -5,9 +5,8 @@ import frame
 
 class player(object):
 	#player view
-	def __init__(self, m, chain = False):
+	def __init__(self, m):
 		self.m = m
-		self.chain = chain
 		self.alive = True
 		self.startList = [(0, 0), (self.m.rows-1, 0), (0, self.m.cols-1), (self.m.rows-1, self.m.cols-1), (0, self.m.cols//2), (self.m.rows//2, 0), (self.m.rows//2, self.m.cols-1), (self.m.rows-1, self.m.cols//2)]
 		self.subStartList = [(x, 0) for x in range(2, self.m.rows-2)] + [(x, self.m.cols-1) for x in range(2, self.m.rows-2)] + [(0, y) for y in range(2, self.m.rows-2)] + [(self.m.rows-1, y) for y in range(2, self.m.rows-2)]
@@ -18,6 +17,7 @@ class player(object):
 		self.override = []
 		self.twin = set()
 		self.bros = set()
+		self.pigeon = set()
 
 		return
 
@@ -31,6 +31,8 @@ class player(object):
 	#assume (row, col) is safe, explore it
 	def hintSafeBlock(self, row, col, iNebr = None):
 		if self.alive:
+			if not self.m.covered[row, col]:
+				return True
 			self.m.safe[row, col] = True
 
 			hint, neighbor = self.exploreBlock(row, col, iNebr = iNebr, oNebr = True)
@@ -54,6 +56,8 @@ class player(object):
 	#assume (row, col) is mine, flag it
 	def flagMineBlock(self, row, col, iNebr = None):
 		if self.alive:
+			if self.m.flag[row, col]:
+				return True
 			self.m.flag[row, col] = True
 			self.m.flagCount = self.m.flagCount + 1
 			self.prob[row, col] = 1 #TODO: should it be set 1? if optimistic/cautious?
@@ -217,10 +221,11 @@ class player(object):
 
 
 	#twin function
-	#a block's hint is equal to its neighbor's
-	def checkTwinBros(self):
+	#a block's hint is equal or something to its neighbor's
+	def checkTwin(self):
 		self.twin = set()
 		self.bros = set()
+		self.pigeon = set()
 		for row in range(self.m.rows):
 			for col in range(self.cols):
 				if self.m.done[row, col] or self.m.covered[row, col]:
@@ -235,11 +240,73 @@ class player(object):
 					elif self.m.hint[row, col] == self.m.hint[bPos] + 1:
 						tempBros = [(row, col), bPos]
 						self.bros.add(tempBros)
-		return bool(self.twin) or bool(self.bros)
+					elif self.m.hint[row, col] == self.m.hint[bPos] + 5:
+						tempPigeon = [(row, col), bPos]
+						self.pigeon.add(tempPigeon)
+					elif self.m.hint[row, col] == self.m.hint[bPos] + 3:
+						if row == bPos[0] or col == bPos[1]:
+							tempPigeon = [(row, col), bPos]
+							self.m.pigeon.add(tempPigeon)
+		return bool(self.twin) or bool(self.bros) or bool(self.pigeon)
 
 	#solve twin relation based on symmetric
 	def solveTwin(self, oPos, yPos):
-		pass
+		oNeighbor = self.m.getNeighbor(*oPos)
+		yNeighbor = self.m.getNeighbor(*yPos)
+		oNeighbor = [pos[0] for pos in oNeighbor]
+		yNeighbor = [pos[0] for pos in yNeighbor]
+		#compensate border blocks
+		oSafe = 8 - len(oNeighbor)
+		ySafe = 8 - len(yNeighbor)
+		overComp = min(oSafe, ySafe)
+		oSafe = oSafe - overComp
+		ySafe = ySafe - overComp
+		#get unique neighbor
+		oUniqNebr = list(oNeighbor - yNeighbor)
+		yUniqNebr = list(yNeighbor - oNeighbor)
+		#count safe flag and inconclusive blocks WARN: do not use self.m.cound because uniqNebr can be empty
+		oFlag = 0
+		yFlag = 0
+		oInconclusive = []
+		yInconclusive = []
+		solveFlag = False
+
+		for oNebrPos in oUniqNebr:
+			if self.m.safe[oNebrPos]:
+				oSafe = oSafe + 1
+			elif self.m.flag[oNeighbor]:
+				oFlag = oFlag + 1
+			else:
+				oInconclusive.append[oNebrPos]
+		if not oInconclusive: # this case has been done in override
+			return False
+		
+		for yNebrPos in yUniqNebr:
+			if self.m.safe[yNebrPos]:
+				ySafe = ySafe + 1
+			elif self.m.flag[yNeighbor]:
+				yFlag = yFlag + 1
+			else:
+				yInconclusive.append[yNebrPos]
+		if not yInconclusive: # this case has been done in override
+			return False
+
+		safeCount = max(oSafe, ySafe)
+		flagCount = max(oFlag, yFlag)
+		if safeCount + flagCount == max(len(oUniqNebr), len(yUniqNebr)):
+			if oSafe == safeCount:
+				self.flagWaiting.extend(oInconclusive)
+				solveFlag = True
+			elif oFlag == flagCount:
+				self.safeWaiting.extend(oInconclusive)
+				solveFlag = True
+			if ySafe == safeCount:
+				self.flagWaiting.extend(yInconclusive)
+				solveFlag = True
+			elif yFlag == flagCount:
+				self.safeWaiting.extend(yInconclusive)
+				solveFlag = True
+		return solveFlag
 		#fill 4*4 board
 		#check unique neighbor
 		#compare unique neighbor
@@ -247,6 +314,26 @@ class player(object):
 	#solve bros relation based on symmetric
 	def solveBros(self, oPos, yPos):
 		pass
+
+	#solve pigeon pairs relation based on symmetric
+	def solvePigeon(self, oPos, yPos):
+		oNeighbor = self.m.getNeighbor(*oPos)
+		yNeighbor = self.m.getNeighbor(*yPos)
+		oNeighbor = [pos[0] for pos in oNeighbor]
+		yNeighbor = [pos[0] for pos in yNeighbor]
+		oUniqNebr = list(oNeighbor - yNeighbor)
+		yUniqNebr = list(yNeighbor - oNeighbor)
+		solveFlag = False
+		for oNebrPos in oUniqNebr:
+			if not self.m.flag[oNebrPos]:
+				self.flagWaiting.add(oNebrPos)
+				solveFlag = True
+		for yNebrPos in yUniqNebr:
+			if not self.m.safe[yNebrPos]:
+				self.safeWaiting.add(yNebrPos)
+				solveFlag = True
+		return solveFlag
+
 
 	#leap of faith function
 	#get a safer next block to open
@@ -343,7 +430,7 @@ class player(object):
 
 if __name__ == '__main__':
 	m = frame.board(64, 64, 800)
-	p = player(m, chain = True)
+	p = player(m)
 	res = p.firstStep()
 	while p.alive and ((p.m.blockCount + p.m.flagCount) < (p.m.rows * p.m.cols)) and (p.m.flagCount < p.m.mines):
 		res = p.stepByStep()
