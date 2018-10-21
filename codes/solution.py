@@ -308,9 +308,6 @@ class player(object):
                     self.safeWaiting.update(yInconclusive)
                     solveFlag = True
         return solveFlag
-        #fill 4*4 board
-        #check unique neighbor
-        #compare unique neighbor
 
     #solve bros relation based on symmetric
     def solveBros(self, oPos, yPos):
@@ -353,7 +350,6 @@ class player(object):
         if not oInconclusive and not yInconclusive: # not this case
             return False
         #symmetric
-        #TODO: control difference
         diff = self.m.hint[oPos] - self.m.hint[yPos] #older bro has a larger hint
         safeCount = max(oSafe, ySafe - diff)
         flagCount = max(oFlag, yFlag + diff)
@@ -506,30 +502,33 @@ class player(object):
         return self.alive
 
 
-
+    #solve it, return completeRate
+    def solve(self):
+        res = self.firstStep()
+        while self.alive and ((self.m.blockCount + self.m.flagCount) < (self.m.rows * self.m.cols)) and (self.m.flagCount < self.m.mines):
+            res = self.stepByStep()
+            res = self.stepAside()
+            if res:
+                continue
+            res = self.keepInStep()
+            if res:
+                continue
+            while self.alive and ((self.m.blockCount + self.m.flagCount) < (self.m.rows * self.m.cols)) and (self.m.flagCount < self.m.mines) and not (self.safeWaiting or self.flagWaiting):
+                self.leapOfFaith()
+                if self.alive:
+                    res = self.stepAside()
+                    if res:
+                        break
+                    res = self.keepInStep()
+                    if res:
+                        break
+        return (p.m.blockCount + p.m.flagCount)*100 / (p.m.rows * p.m.cols)
 
 
 if __name__ == '__main__':
     m = frame.board(64, 64, 820)
     p = player(m)
-    res = p.firstStep()
-    while p.alive and ((p.m.blockCount + p.m.flagCount) < (p.m.rows * p.m.cols)) and (p.m.flagCount < p.m.mines):
-        res = p.stepByStep()
-        res = p.stepAside()
-        if res:
-            continue
-        res = p.keepInStep()
-        if res:
-            continue
-        while p.alive and ((p.m.blockCount + p.m.flagCount) < (p.m.rows * p.m.cols)) and (p.m.flagCount < p.m.mines) and not (p.safeWaiting or p.flagWaiting):
-            p.leapOfFaith()
-            if p.alive:
-                res = p.stepAside()
-                if res:
-                    break
-                res = p.keepInStep()
-                if res:
-                    break
+    completeRate =  p.solve()
     # print(res)
     # print(m.hint)
     # print(m.warn)
@@ -538,6 +537,6 @@ if __name__ == '__main__':
     # print(m.done)
     print(m.blockCount)
     print(m.flagCount)
-    print('%.2f%%' %((p.m.blockCount + p.m.flagCount)*100 / (p.m.rows * p.m.cols),))
+    print('%.2f%%' %(completeRate))
     m.visualize()
     m.visualize(cheat = True)
