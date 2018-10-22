@@ -664,7 +664,7 @@ class player(object):
                     res = self.elixir(rangeLim = 3, iterLim = 64)
                     if res:
                         break
-        return max((p.m.blockCount + p.m.flagCount)*100 / (p.m.rows * p.m.cols), (p.m.flagCount*100 / p.m.mines))
+        return max((self.m.blockCount + self.m.flagCount)*100 / (self.m.rows * self.m.cols), (self.m.flagCount*100 / self.m.mines))
 
 
 
