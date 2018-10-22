@@ -1,5 +1,6 @@
 import numpy as np
 import itertools
+import random
 
 import frame
 
@@ -18,6 +19,9 @@ class player(object):
         self.twin = set()
         self.bros = set()
         self.pigeon = set()
+        self.inconclusive = set()
+
+        self.fullLeft = np.copy(self.m.left)
 
         return
 
@@ -89,7 +93,7 @@ class player(object):
         if self.alive:
             tempHint = self.m.explore(row, col)
             if tempHint is False:
-                print('E: solution.player.exploreBlock. What a Terrible Failure!')
+                print('E: solution.player.exploreBlock (%d, %d). What a Terrible Failure!' %(row, col))
                 self.alive = False
             #   self.m.visualize(cheat = False)
             #   self.m.visualize(cheat = True)
@@ -390,6 +394,91 @@ class player(object):
         return solveFlag
 
 
+    #proof by contradiction function
+    #get supposable block, covered but adjacent to hint
+    def getInconclusive(self):
+        self.inconclusive = set()
+        for row in range(self.m.rows):
+            for col in range(self.m.cols):
+                if self.m.covered[row, col] and not self.m.flag[row, col]:
+                    if self.m.count(row, col, 'safe'):
+                        self.inconclusive.add((row, col))
+        return self.inconclusive
+
+    #check if (row, col) can be blockType in rangeLim
+    def suppose(self, row, col, blockType, rangeLim = 5):
+        assumedBoard = np.zeros((2*rangeLim+1, 2*rangeLim+1), dtype = np.bool)
+        maxMine = self.m.mines - self.m.flagCount
+        if blockType == 'flag':
+            assumedBoard[rangeLim, rangeLim] = True
+            maxMine = maxMine - 1
+        else: #type == 'hint'
+            assumedBoard[rangeLim, rangeLim] = False
+
+        inconclusivePosList = []
+        for aRow in range(row - rangeLim, row + rangeLim+1):
+            if aRow < 0 or aRow > self.m.rows-1:
+                continue
+            for aCol in range(col - rangeLim, col + rangeLim+1):
+                if aCol < 0 or aCol > self.m.cols-1:
+                    continue
+                if aRow == row and aCol == col:
+                    continue
+            
+                relativeRow = aRow - row + rangeLim
+                relativeCol = aCol - col + rangeLim
+                
+                if self.m.flag[aRow, aCol]:
+                    assumedBoard[relativeRow, relativeCol] = True
+                elif not self.m.covered[aRow, aCol]:
+                    assumedBoard[relativeRow, relativeCol] = False
+                else: #covered, not flaged => inconclusive #WARN: rangeLim
+                    if (aRow, aCol) in self.inconclusive:
+                        inconclusivePosList.append((relativeRow, relativeCol))
+        
+        inconclusiveLen = len(inconclusivePosList)
+        if inconclusiveLen == 0:
+            return True
+
+        flagLim = min(inconclusiveLen, maxMine)
+
+        for flagNum in range(flagLim+1):
+            assumedFlagPosList = itertools.combinations(inconclusivePosList, flagNum)
+            for assumedFlagPos in assumedFlagPosList:
+                tempAssumedBoard = np.copy(assumedBoard)
+                # print(assumedFlagPos)
+                for pos in assumedFlagPos:
+                    tempAssumedBoard[pos] = True
+                res = self.checkAssumedHint(row, col, assumedBoard = tempAssumedBoard, rangeLim = rangeLim)
+                if res:
+                    return True
+        return False
+
+    #generate assumed hint and check if it is according to given hint
+    def checkAssumedHint(self, row, col, assumedBoard, rangeLim = 5):
+        for aRow in range(row - rangeLim+1, row + rangeLim): #rangeLim-1
+            if aRow < 0 or aRow > self.m.rows-1:
+                continue
+            for aCol in range(col - rangeLim+1, col + rangeLim):
+                if aCol < 0 or aCol > self.m.cols-1:
+                    continue
+                if self.m.covered[aRow, aCol]:
+                    continue
+
+                relativeRow = aRow - row + rangeLim
+                relativeCol = aCol - col + rangeLim
+
+                neighbor = assumedBoard[relativeRow-1: relativeRow+2, relativeCol-1: relativeCol+2].astype(np.uint8)
+                hint = neighbor.sum() - neighbor[1, 1]
+                if hint != self.m.hint[aRow, aCol]:
+                    # print(neighbor)
+                    # print(aRow, aCol)
+                    # print(hint)
+                    # print(rangeLim)
+                    return False
+        return True
+
+
     #leap of faith function
     #get a safer next block to open
     def getNext(self):
@@ -411,8 +500,8 @@ class player(object):
                 if self.m.covered[pos] and not self.m.flag[pos]:
                     return pos, meanProb[pos]
         #best block in middle stage and endgame
-        meanProb[(~self.m.covered) | self.m.flag] = 1
-        pos = np.unravel_index(np.argmin(meanProb), meanProb.shape)
+        meanProb[(~self.m.covered) | self.m.flag] = 1 #delete explored and flaged block
+        pos = np.unravel_index(np.argmin(meanProb), meanProb.shape) #TODO: if min is about 0.5, it seems reasonable to flag max rather than hint min.
         return pos, meanProb[pos]
 
 
@@ -489,12 +578,55 @@ class player(object):
                     solveFlag = True
         return solveFlag
 
+    #4th arm, proof by contradiction, theoretically it can do anything we can do
+    def elixir(self, rangeLim = None, iterLim = None):
+        solveFlag = False
+        if self.getInconclusive():
+            inconclusive = list(self.inconclusive)
+            inconclusiveLen = len(inconclusive)
+            # print(inconclusiveLen)
+
+            if rangeLim is None:
+                rangeLim = 4
+
+            random.shuffle(inconclusive)
+            if iterLim is not None and inconclusiveLen > iterLim:
+                inconclusive = inconclusive[0: iterLim]
+
+            for pos in inconclusive:
+                positiveRes = self.suppose(pos[0], pos[1], 'flag', rangeLim = rangeLim)
+                negativeRes = self.suppose(pos[0], pos[1], 'safe', rangeLim = rangeLim)
+                
+                if positiveRes and negativeRes:
+                    continue
+                elif positiveRes and not negativeRes:
+                    print('elixir negative contradict (%d, %d)' %(pos[0], pos[1]))
+                    # self.m.visualize()
+                    # self.m.visualize(cheat = True)
+                    self.flagWaiting.add(pos)
+                    solveFlag = True
+                    break
+                elif not positiveRes and negativeRes:
+                    print('elixir positive contradict (%d, %d)' %(pos[0], pos[1]))
+                    # self.m.visualize()
+                    # self.m.visualize(cheat = True)
+                    self.safeWaiting.add(pos)
+                    solveFlag = True
+                    break
+                elif not positiveRes and not negativeRes:
+                    print('E: solution.player.elixir. (%d, %d) knowledge base not consist' %(pos[0], pos[1]))
+                    # self.m.visualize()
+                    # self.m.visualize(cheat = True)
+                    #TODO: error from leapOfFaith, check it
+
+        return solveFlag
+
     #final arm, ready to die
     def leapOfFaith(self):
         # self.m.visualize()
         # self.m.visualize(cheat = True)
         step, prob = self.getNext()
-        print('W: solution.player.leapOfFaith. risk (%d, %d)' %(step[0], step[1]))
+        print('W: solution.player.leapOfFaith. (%d, %d) risk %.2f%%' %(step[0], step[1], prob*100))
         if prob * 2 < 1:
             self.hintSafeBlock(*step)
         else:
@@ -507,12 +639,16 @@ class player(object):
         res = self.firstStep()
         while self.alive and ((self.m.blockCount + self.m.flagCount) < (self.m.rows * self.m.cols)) and (self.m.flagCount < self.m.mines):
             res = self.stepByStep()
-            res = self.stepAside()
-            if res:
-                continue
-            res = self.keepInStep()
-            if res:
-                continue
+            if self.alive:
+                res = self.stepAside()
+                if res:
+                    continue
+                res = self.keepInStep()
+                if res:
+                    continue
+                res = self.elixir(rangeLim = 5, iterLim = 64)
+                if res:
+                    continue
             while self.alive and ((self.m.blockCount + self.m.flagCount) < (self.m.rows * self.m.cols)) and (self.m.flagCount < self.m.mines) and not (self.safeWaiting or self.flagWaiting):
                 self.leapOfFaith()
                 if self.alive:
@@ -522,7 +658,12 @@ class player(object):
                     res = self.keepInStep()
                     if res:
                         break
-        return (p.m.blockCount + p.m.flagCount)*100 / (p.m.rows * p.m.cols)
+                    res = self.elixir(rangeLim = None)
+                    if res:
+                        break
+        return max((p.m.blockCount + p.m.flagCount)*100 / (p.m.rows * p.m.cols), (p.m.flagCount*100 / p.m.mines))
+
+
 
 
 if __name__ == '__main__':
