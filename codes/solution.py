@@ -646,7 +646,7 @@ class player(object):
                 res = self.keepInStep()
                 if res:
                     continue
-                res = self.elixir(rangeLim = 5, iterLim = 64)
+                res = self.elixir(rangeLim = 4, iterLim = 64)
                 if res:
                     continue
             while self.alive and ((self.m.blockCount + self.m.flagCount) < (self.m.rows * self.m.cols)) and (self.m.flagCount < self.m.mines) and not (self.safeWaiting or self.flagWaiting):
@@ -658,7 +658,7 @@ class player(object):
                     res = self.keepInStep()
                     if res:
                         break
-                    res = self.elixir(rangeLim = None)
+                    res = self.elixir(rangeLim = 3, iterLim = 64)
                     if res:
                         break
         return max((p.m.blockCount + p.m.flagCount)*100 / (p.m.rows * p.m.cols), (p.m.flagCount*100 / p.m.mines))
