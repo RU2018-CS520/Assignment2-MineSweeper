@@ -83,6 +83,7 @@ class board(object):
         self.build(row, col)
 
         #get feedback
+        self.safe[row, col] = True
         self.hint[row, col] = self.explore(row, col)
         self.warn[row, col] = self.hint[row, col] #- count(neighbor, 'flag')
         for pos, index in self.getNeighbor(row, col):
