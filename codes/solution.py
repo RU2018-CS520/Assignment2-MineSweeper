@@ -21,7 +21,7 @@ class player(object):
         self.pigeon = set()
         self.inconclusive = set()
 
-        self.fullLeft = np.copy(self.m.left)
+        self.history = []
 
         return
 
@@ -38,6 +38,7 @@ class player(object):
             if not self.m.covered[row, col]:
                 return True
             self.m.safe[row, col] = True
+            self.history.append(((row,col), 'safe'))
 
             hint, neighbor = self.exploreBlock(row, col, iNebr = iNebr, oNebr = True)
             if hint is False: #dead
@@ -64,6 +65,7 @@ class player(object):
                 return True
             self.m.flag[row, col] = True
             self.m.flagCount = self.m.flagCount + 1
+            self.history.append(((row, col), 'flag'))
             self.prob[row, col] = 1 #TODO: should it be set 1? if optimistic/cautious?
             neighbor = self.checkInNeighbor(row, col, iNebr)
             for pos, index in neighbor:
@@ -511,6 +513,7 @@ class player(object):
         startPos = self.startList.pop()
         tempHint = self.m.start(*startPos)
         self.updateNeighborP(*startPos)
+        self.history.append((startPos, 'safe'))
     
         while self.alive and not (self.safeWaiting or self.flagWaiting):
             self.leapOfFaith()
@@ -681,3 +684,4 @@ if __name__ == '__main__':
     print('%.2f%%' %(completeRate))
     m.visualize()
     m.visualize(cheat = True)
+    print(p.history)
