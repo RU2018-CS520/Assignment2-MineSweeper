@@ -5,21 +5,16 @@ import random
 import frame
 import solution
 import numpy as np
-import pyqtgraph as pg
 import matplotlib.animation as animation
 
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QMenu, QVBoxLayout,
-    QSizePolicy, QMessageBox, QWidget, QPushButton, QWidget, QSlider, QLabel,
-    QGridLayout, QGroupBox, QLineEdit)
+    QSizePolicy, QMessageBox, QPushButton, QWidget, QSlider, QLabel,
+    QGridLayout, QGroupBox, QLineEdit, QCheckBox)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot, Qt, QRectF
-from matplotlib.figure import Figure
 from PIL import Image, ImageChops
-from threading import Thread
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
-from matplotlib.animation import TimedAnimation
-from matplotlib.lines import Line2D
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.animation import FuncAnimation
 
@@ -97,6 +92,9 @@ class Window(QWidget):
         self.buttonStart.clicked.connect(self.start)
         grid.addWidget(self.buttonStart, 2, 0, 1, 3)
 
+        self.checkBox = QCheckBox('Animation', self)
+        grid.addWidget(self.checkBox)
+
         groupBox.setLayout(grid)
         return groupBox
 
@@ -142,7 +140,9 @@ class Window(QWidget):
         print('Done')
 
         self.slider.setMaximum(len(self.p.history) - 1)
-        self.animate(self.p)
+        if self.checkBox.isChecked():
+            self.animate(self.p)
+        self.buttonStartAnimation.setEnabled(True)
         self.buttonStart.setText('Generate and Solve')
         self.buttonStart.setEnabled(True)
         self.slider.setEnabled(True)
@@ -238,6 +238,7 @@ class Canvas(FigureCanvas):
         img = ImageChops.invert(img)
         im = plt.imshow(img, animated = True)
         self.draw()
+        currentStep = i
 
     def animate(*args):
         global currentStep
@@ -248,10 +249,10 @@ class Canvas(FigureCanvas):
         global anim
         print('Drawing step ' + repr(currentStep))
         [x, y], hint = p.history[currentStep]
-        if hint == 'safe':
-            p.m.hint[x, y] = p.m.explore(x, y)
-        elif hint == 'flag':
-            p.m.flag[x, y] = True
+        # if hint == 'safe':
+        #     p.m.hint[x, y] = p.m.explore(x, y)
+        # elif hint == 'flag':
+        #     p.m.flag[x, y] = True
         image[x*16 : x*16+16, y*16 : y*16+16] = p.m.tile(covered = p.m.covered[x, y], mine = p.m._mine[x, y], clue = p.m._clue[x, y], hint = p.m.hint[x, y], flag = p.m.flag[x, y], beacon = beacon and not (x%beacon and y%beacon), cheat = cheat)
         img = Image.fromarray(image)
         img = ImageChops.invert(img)
@@ -263,11 +264,14 @@ class Canvas(FigureCanvas):
             anim.event_source.stop()
         return im,
 
-    def initUI(self, m = None):
-        if m is None:
-            m = frame.board(self.rows, self.cols, self.mines)
-        self.image = np.zeros((m.rows*16, m.cols*16, 3), dtype = np.uint8)
-        self.plot(m, cnt = 0)
+    def initUI(self, p):
+        image = np.zeros((p.m.rows*16, p.m.cols*16, 3), dtype = np.uint8)
+        for row in range(m.rows):
+            for col in range(m.cols):
+                image[row*16 : row*16+16, col*16 : col*16+16] = m.tile(covered = True)
+        img = Image.fromarray(image)
+        img = ImageChops.invert(img)
+        im = plt.imshow(img, animated = True)
 
     def plot(self, m, cnt, beacon = 16, cheat = False):
         for row in range(m.rows):
