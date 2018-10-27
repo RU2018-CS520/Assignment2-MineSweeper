@@ -26,6 +26,8 @@ class board(object):
         self.cautious = cautious
         self.tile = tile.tile()
 
+        self.blindRate = 0.1
+
         #basic board
         self.covered = np.full((self.rows, self.cols), True, dtype = np.bool)
         self._mine = np.zeros((self.rows, self.cols), dtype = np.bool)
@@ -43,6 +45,8 @@ class board(object):
         self.nebr = np.full((self.rows, self.cols), 1, dtype = np.uint64) #hash of neighbor's covered but not flaged
         self.left = np.full((self.rows, self.cols), 8, dtype = np.uint8) #number of neighbor's covered but not flaged
         self.done = np.zeros((self.rows, self.cols), dtype = np.bool) #all neighbor explored or flaged
+
+        self.hide = np.zeros((self.rows, self.cols), dtype = np.bool)
 
         #process left
         self.left[0, :] = 5
@@ -84,7 +88,8 @@ class board(object):
 
         #get feedback
         self.safe[row, col] = True
-        self.hint[row, col] = self.explore(row, col)
+        tempHint = self.explore(row, col)
+        self.hint[row, col] = self._clue[row, col]
         self.warn[row, col] = self.hint[row, col] #- count(neighbor, 'flag')
         for pos, index in self.getNeighbor(row, col):
             self.nebr[pos] = self.nebr[pos] // self.hashCore[row%5, col%5]
@@ -108,7 +113,8 @@ class board(object):
         hint = self._clue[row, col]
         #TODO: blind, optimistic, cautious 
         if self.blind:
-            pass
+            if random.random() < self.blindRate:
+                hint = None
         if self.optimistic:
             pass
         if self.cautious:
@@ -125,7 +131,7 @@ class board(object):
         image = np.zeros((self.rows*16, self.cols*16, 3), dtype = np.uint8)
         for row in range(self.rows):
             for col in range(self.cols):
-                image[row*16 : row*16+16, col*16 : col*16+16] = self.tile(covered = self.covered[row, col], mine = self._mine[row, col], clue = self._clue[row, col], hint = self.hint[row, col], flag = self.flag[row, col], beacon = beacon and not (row%beacon and col%beacon), cheat = cheat)
+                image[row*16 : row*16+16, col*16 : col*16+16] = self.tile(covered = self.covered[row, col], mine = self._mine[row, col], clue = self._clue[row, col], hint = self.hint[row, col], flag = self.flag[row, col], hide = self.hide[row, col], beacon = beacon and not (row%beacon and col%beacon), cheat = cheat)
         img = Image.fromarray(image) 
         img = ImageChops.invert(img)
         plt.imshow(img)
@@ -240,8 +246,9 @@ class board(object):
 
 
 if __name__ == '__main__':
-    m = board(10, 10, 10)
+    m = board(10, 10, 10, blind = True)
     m.start(m.rows-1,m.cols//2)
     print(m.left)
+    m.visualize(cheat = False)
     m.visualize(cheat = True)
     print(m.getNeighbor(0,0))
