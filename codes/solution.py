@@ -626,8 +626,8 @@ class player(object):
                     # self.m.visualize()
                     # self.m.visualize(cheat = True)
                     #TODO: error from leapOfFaith, check it
-        if solveFlag is False and inconclusiveLen > iterLim:
-            self.elixirPatience = self.elixirPatience // 2 + 1
+            if solveFlag is False and inconclusiveLen > iterLim:
+                self.elixirPatience = self.elixirPatience // 2 + 1
         return solveFlag
 
     #final arm, ready to die
