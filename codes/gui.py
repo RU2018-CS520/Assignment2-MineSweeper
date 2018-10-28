@@ -234,7 +234,7 @@ class Canvas(FigureCanvas):
         image = np.zeros((p.m.rows*16, p.m.cols*16, 3), dtype = np.uint8)
         for row in range(p.m.rows):
             for col in range(p.m.cols):
-                image[row*16 : row*16+16, col*16 : col*16+16] = p.m.tile(covered = True, mine = False, clue = False, hint = False, flag = False)
+                image[row*16 : row*16+16, col*16 : col*16+16] = p.m.tile(covered = True, mine = False, clue = False, hint = False, flag = False, hide = False)
         img = Image.fromarray(image)
         img = ImageChops.invert(img)
         im = plt.imshow(img, animated = True)
@@ -256,7 +256,7 @@ class Canvas(FigureCanvas):
         for j in range(l ,r):
             print('Drawing step ' + repr(j))
             [x, y], hint = p.history[j]
-            image[x*16 : x*16+16, y*16 : y*16+16] = p.m.tile(covered = p.m.covered[x, y], mine = p.m._mine[x, y], clue = p.m._clue[x, y], hint = p.m.hint[x, y], flag = p.m.flag[x, y], beacon = beacon and not (x%beacon and y%beacon), cheat = cheat)
+            image[x*16 : x*16+16, y*16 : y*16+16] = p.m.tile(covered = p.m.covered[x, y], mine = p.m._mine[x, y], clue = p.m._clue[x, y], hint = p.m.hint[x, y], flag = p.m.flag[x, y], beacon = beacon and not (x%beacon and y%beacon), cheat = cheat, hide = False)
         img = Image.fromarray(image)
         img = ImageChops.invert(img)
         im = plt.imshow(img, animated = True)
@@ -272,7 +272,7 @@ class Canvas(FigureCanvas):
         global anim
         print('Drawing step ' + repr(currentStep))
         [x, y], hint = p.history[currentStep]
-        image[x*16 : x*16+16, y*16 : y*16+16] = p.m.tile(covered = p.m.covered[x, y], mine = p.m._mine[x, y], clue = p.m._clue[x, y], hint = p.m.hint[x, y], flag = p.m.flag[x, y], beacon = beacon and not (x%beacon and y%beacon), cheat = cheat)
+        image[x*16 : x*16+16, y*16 : y*16+16] = p.m.tile(covered = p.m.covered[x, y], mine = p.m._mine[x, y], clue = p.m._clue[x, y], hint = p.m.hint[x, y], flag = p.m.flag[x, y], beacon = beacon and not (x%beacon and y%beacon), cheat = cheat, hide = False)
         img = Image.fromarray(image)
         img = ImageChops.invert(img)
         im = plt.imshow(img, animated = True)
@@ -289,7 +289,7 @@ class Canvas(FigureCanvas):
         image = np.zeros((p.m.rows*16, p.m.cols*16, 3), dtype = np.uint8)
         for row in range(p.m.rows):
             for col in range(p.m.cols):
-                image[row*16 : row*16+16, col*16 : col*16+16] = p.m.tile(covered = True, mine = False, clue = False, hint = False, flag = False)
+                image[row*16 : row*16+16, col*16 : col*16+16] = p.m.tile(covered = True, mine = False, clue = False, hint = False, flag = False, hide = False)
         img = Image.fromarray(image)
         img = ImageChops.invert(img)
         im = plt.imshow(img, animated = True)
@@ -298,7 +298,7 @@ class Canvas(FigureCanvas):
     def plot(self, m, cnt, beacon = 16, cheat = False):
         for row in range(m.rows):
             for col in range(m.cols):
-                self.image[row*16 : row*16+16, col*16 : col*16+16] = m.tile(covered = m.covered[row, col], mine = m._mine[row, col], clue = m._clue[row, col], hint = m.hint[row, col], flag = m.flag[row, col], beacon = beacon and not (row%beacon and col%beacon), cheat = cheat)
+                self.image[x*16 : x*16+16, y*16 : y*16+16] = p.m.tile(covered = p.m.covered[x, y], mine = p.m._mine[x, y], clue = p.m._clue[x, y], hint = p.m.hint[x, y], flag = p.m.flag[x, y], beacon = beacon and not (x%beacon and y%beacon), cheat = cheat, hide = False)
         img = Image.fromarray(self.image)
         img = ImageChops.invert(img)
         plt.imshow(img)
@@ -314,7 +314,7 @@ class Canvas(FigureCanvas):
         print('Drawing step ' + repr(cnt))
         [x, y], hint = p.history[cnt]
         p.m.hint[x, y] = p.m.explore(x, y)
-        self.image[x*16 : x*16+16, y*16 : y*16+16] = p.m.tile(covered = p.m.covered[x, y], mine = p.m._mine[x, y], clue = p.m._clue[x, y], hint = p.m.hint[x, y], flag = p.m.flag[x, y], beacon = beacon and not (x%beacon and y%beacon), cheat = cheat)
+        self.image[x*16 : x*16+16, y*16 : y*16+16] = p.m.tile(covered = p.m.covered[x, y], mine = p.m._mine[x, y], clue = p.m._clue[x, y], hint = p.m.hint[x, y], flag = p.m.flag[x, y], beacon = beacon and not (x%beacon and y%beacon), cheat = cheat, hide = False)
         img = Image.fromarray(self.image)
         img = ImageChops.invert(img)
         plt.imshow(img)
