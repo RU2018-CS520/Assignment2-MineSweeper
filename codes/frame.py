@@ -8,7 +8,7 @@ import tile
 
 class board(object):
     #a minesweeper board
-    def __init__(self, rows = 10, cols = 10, mines = 10, blind = False, optimistic = False, cautious = False):
+    def __init__(self, rows = 10, cols = 10, mines = 10, blind = False, optimistic = False, cautious = False, blindRate = 0.1):
         #int rows in [2 : inf]: size of board
         #int cols in [2 : inf]: size of board
         #int mines in [1 : rows*cols-1]: the number of mines
@@ -26,7 +26,7 @@ class board(object):
         self.cautious = cautious
         self.tile = tile.tile()
 
-        self.blindRate = 0.1
+        self.blindRate = blindRate
 
         #basic board
         self.covered = np.full((self.rows, self.cols), True, dtype = np.bool)
@@ -246,7 +246,7 @@ class board(object):
 
 
 if __name__ == '__main__':
-    m = board(10, 10, 10, blind = True)
+    m = board(10, 10, 10, blind = True, blindRate = 0.1)
     m.start(m.rows-1,m.cols//2)
     print(m.left)
     m.visualize(cheat = False)
