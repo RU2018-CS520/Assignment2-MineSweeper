@@ -30,6 +30,8 @@ class tile(object):
 
         self.blockWrongColor = [0, 255, 255]
 
+        self.hideColor = [255, 255, 255]
+
         #shape
         self.backShape = np.asarray([               [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                                                     [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -339,8 +341,25 @@ class tile(object):
                                                     [0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0],
                                                     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]], dtype = np.bool)
 
+        self.hideShape = np.asarray([               [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                                                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                                                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                                                    [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+                                                    [0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0],
+                                                    [0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0],
+                                                    [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0],
+                                                    [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+                                                    [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+                                                    [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+                                                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                                                    [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+                                                    [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+                                                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                                                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                                                    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]], dtype = np.bool)
+
     #paint a tile
-    def __call__(self, covered, mine, clue, hint, flag, beacon = False, cheat = False):
+    def __call__(self, covered, mine, clue, hint, flag, hide, beacon = False, cheat = False):
         
         block = np.zeros((self.size, self.size, 3), dtype = np.uint8)
 
@@ -372,6 +391,8 @@ class tile(object):
                 block[self.failedBackShape]  = self.failedBackColor
                 block[self.mineMainShape] = self.mineMainColor
                 block[self.mineSubShape] = self.mineSubColor
+            elif not cheat and hide:
+                block[self.hideShape] = self.hideColor
             elif not cheat and 0 < hint < 9: #covered hint
                 block[self.clueShapes[hint-1]] = self.clueColors[hint-1]
             elif cheat and 0 < clue < 9:#cheat clue
