@@ -245,7 +245,7 @@ class player(object):
                     if self.m.hint[row, col] == self.m.hint[bPos]:
                         tempTwin = frozenset([(row, col), bPos])
                         self.twin.add(tempTwin)
-                    elif (self.m.hint[row, col] == self.m.hint[bPos] + 1) or (self.m.hint[row, col] == self.m.hint[bPos] + 2):
+                    elif (self.m.hint[row, col] == self.m.hint[bPos] + 1) or (self.m.hint[row, col] == self.m.hint[bPos] + 2) or (self.m.hint[row, col] == self.m.hint[bPos] + 4):
                         tempBros = ((row, col), bPos)
                         self.bros.add(tempBros)
                     elif self.m.hint[row, col] == self.m.hint[bPos] + 5:
@@ -255,6 +255,9 @@ class player(object):
                         if row == bPos[0] or col == bPos[1]:
                             tempPigeon = ((row, col), bPos)
                             self.pigeon.add(tempPigeon)
+                        else:
+                            tempBros = ((row, col), bPos)
+                            self.bros.add(tempBros)
         return bool(self.twin) or bool(self.bros) or bool(self.pigeon)
 
     #solve twin relation based on symmetric
