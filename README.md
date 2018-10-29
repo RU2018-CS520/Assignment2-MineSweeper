@@ -15,6 +15,7 @@ This is the git repository for **Assignment 2 - MineSweeper, Inference-Informed 
 │   └── description.md	# documentation of this project
 │   └── report.pdf 		# the report of this project
 │   └── Solution Algorithm Explanation.html 	# a very detailed explanation on how we implement this program
+│   └── Uncertainty Explanation.html 	# a very detailed explanation about dealing with uncertainty 
 ├── pics 				# is for storing pictures and figures that are used in the report
 └── README.md
 ```
