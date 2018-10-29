@@ -601,8 +601,8 @@ Yes, there can be some blocks solvable. But generally they cannot provide a lot 
 ## Some Screenshots of Algorithms
 As Fig.17 and Fig.18 showed, all above algorithms play important roles when solving minesweeper.
 
-![FIg. 17](../pics/solution17.png "Fig. 17")
+![FIg. 17](/../pics/solution17.png "Fig. 17")
 Fig. 17: an example screenshot when debugging. It is a 64 by 64 board with 820 mines.
 
-![Fig. 18](../pics/solution18.png "Fig. 18")
+![Fig. 18](/../pics/solution18.png "Fig. 18")
 Fig. 18: another example screenshot. It is a 64 by 64 board with 820 mines.
