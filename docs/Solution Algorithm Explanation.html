@@ -525,7 +525,7 @@ Notice that we have no other choice. Either to flag a block, which maybe a mista
 We may find we flag a block by mistake in <code>elixir</code>. Therefore once <code>not positiveRes and not negativeRes</code>, we should check <code>uncertainFlag</code>.</li>
 </ol>
 <h2><a id="firstStep_575"></a>firstStep</h2>
-<p>This function is used to find a good start. I involves many prior knowledges of minesweeper.</p>
+<p>This function is used to find a good start. It involves many prior knowledges of minesweeper.</p>
 <h3><a id="Key_Point_578"></a>Key Point</h3>
 <p>If we can find many hint blocks at the beginning of a minesweeper, it is more probable to solve most of this board.</p>
 <p>Generally, 4 corner blocks and 4 middle blocks in 4 edges are best blocks. All edge blocks, except neighbor of corner blocks are good blocks. <a href="https://www.guokr.com/article/224031/">Here is a reference of that. (It is written in Chinese.)</a></p>
