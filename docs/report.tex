@@ -50,7 +50,7 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 	\hline
 	\makecell[c]{Shengjie Li \\ 188008047} & {Designed and implemented the GUI of our program. Implemented a function that can generate animation of the progress of solving minesweeper. Finished the format design of whole report using \LaTeX. } \\
 	\hline
-	\makecell[c]{Zhichao Xu \\ 188008912} & {Proofread the report. Ran tests and generated figures for question \hyperref[zhichao1]{2.5} and question \hyperref[zhichao2]{4.1}. Finished the writing of report for question \hyperref[zhichao1]{2.5}.} \\
+	\makecell[c]{Zhichao Xu \\ 188008912} & {Proofread the report. Ran tests and generated figures for question \hyperref[zhichao1]{2.5} and question \hyperref[zhichao2]{4.1}. Finished the writing of report for question \hyperref[zhichao1]{2.5} and question \hyperref[zhichao2]{4.1}.} \\
 	\hline
 \end{tabular}
 
@@ -76,7 +76,7 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 		\item {Matrix ``safe'' records the blocks that agents regard as safe blocks.}
 		\item {Matrix ``hint'' saves the hint number the agents have got from the minesweeper.}
 		\item {Matrix ``warn'' represents the number of each hint block’s un-flagged mines. \\ Namely, $ \text{warn} = \text{hint} - (\text{the number of neighbor flags}) $.}
-		\item {Matrix ``left'' represents the number of each block’s inconclusive neighbors. \\ Namely, $ \text{left} = 8 - \text{(the number of neighbor flags-the number of neighbor uncovered)} - \text{(edge cost)} $.}
+		\item {Matrix ``left'' represents the number of each block’s inconclusive neighbors. \\ Namely, $ \text{left} = 8 - \text{(the number of neighbor flags + the number of neighbor uncovered)} - \text{(edge cost)} $.}
 		\item {Matrix ``done'' records blocks whose neighbors are all conclusive. Such blocks could be ignored when agents are solving the minesweeper.}
 		\item {Matrix ``nebr'' is a hash value matrix. It records the inconclusive neighbors of each block. Agents use it when trying to solve equations like ``$ A+B+C=2 $, $ A+B=1 $''.}
 		\item {Matrix ``prob'' is actually a tensor. It records each block’s probability of being a mine block, given each neighbor’s data. Therefore, the size of ``prob'' is $ rows \times columns \times 9 $ (with an extra basic probability).}
@@ -115,7 +115,8 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 	\begin{figure}[H]
 		\centering
 		\includegraphics[width=0.75\textwidth]{../pics/1.png}
-		\caption{\label{fig:1} A $ 10 \times 10 $ board.}
+		\caption{\label{fig:1} A $ 10 \times 10 $ board. }
+		\caption*{(This screenshot is taken after we have done the experiment and the GUI has been changed since then, so the screenshots below may look a little different from this one.)}
 	\end{figure}
 	As Figure \ref{fig:1} shown, it is a 10 by 10 board. There are 100 cells on the board. We use (i, j) to represent the cell in the board. ``i'' represents the row of the cell and ``j'' represents the column of the cell. For example, (1, 1) represents the cell in the upper left corner and (10, 1) represents the cell in the lower left corner. The coordinate of the cell which is uncovered in this figure is (10, 6).
 	
@@ -163,11 +164,11 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 	The same situation happened between step 50 and step 51. In step 50, we can find that (6, 5) is a mine. However, the algorithm chose to check (3, 10) in step 51. The phenomenon is shown in Figure \ref{fig:7} and Figure \ref{fig:8}.
 	
 	\begin{figure}[H]
-		\minipage{0.49\textwidth}
+		\minipage{0.498\textwidth}
 		\includegraphics[width=\textwidth]{../pics/7.png}
 		\caption{\label{fig:7}Step 50.}
 		\endminipage\hfill
-		\minipage{0.49\textwidth}
+		\minipage{0.498\textwidth}
 		\includegraphics[width=\textwidth]{../pics/8.png}
 		\caption{\label{fig:8}Step 51.}
 		\endminipage
@@ -176,11 +177,11 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 	In step 58, we can conclude that (6, 5) and (5, 5) are mines according to ``2'' in (6, 6). However, the algorithm chose to explore (3, 9) in step 59. The phenomenon is shown in Figure \ref{fig:9} and Figure \ref{fig:10}.
 	
 	\begin{figure}[H]
-		\minipage{0.49\textwidth}
+		\minipage{0.498\textwidth}
 		\includegraphics[width=\textwidth]{../pics/7.png}
 		\caption{\label{fig:9}Step 58.}
 		\endminipage\hfill
-		\minipage{0.49\textwidth}
+		\minipage{0.498\textwidth}
 		\includegraphics[width=\textwidth]{../pics/8.png}
 		\caption{\label{fig:10}Step 59.}
 		\endminipage
@@ -250,20 +251,20 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 	\end{enumerate}
 	
 	For the \hyperref[firstpart]{first part}, if we find a block which should be a mine block, there are at least 3 things we could do:
-	\begin{enumerate}
+	\begin{enumerate}[label=(\roman*)]
 		\item {Mark this block to flag, and increase the flag counter by 1.}
 		\item {Decrease the left value of all neighbors of this block by 1, because now this block is conclusive.}
 		\item {Decrease the warn value of all hint blocks’ neighbors by 1, and update their neighbors’ prob value.} 
 		\label{step-d}
 		\item {If a block’s updated prob is 0 or 1, it is now conclusive. Therefore, add it to the waiting line to explore it or to mark it to flag in the future.} \\
-		We do not know whether the situation listed in d) is accessible, but we also include it in this report.
+		We do not know whether the situation listed in \hyperref[step-d]{(iv)} is accessible, but we also include it in this report.
 	\end{enumerate}
 	
 	For the \hyperref[secondpart]{second part}, refer to “Solution Algorithm Explaination.html”.
 	
 	\item {What influences or controls the length of the longest chain of influence when solving a certain board?} \\
 	\\
-	For the \hyperref[firstpart]{first part}, it mainly depends on the distribution of mines. Because all new information is deduced in step \hyperref[step-d]{d)}. But if a mine block’s neighbors are all mine blocks or inconclusive blocks, we cannot update any hint block’s warn value. So if mines are too dense, influence chains are usually short. \\
+	For the \hyperref[firstpart]{first part}, it mainly depends on the distribution of mines. Because all new information is deduced in step \hyperref[step-d]{(iv)}. But if a mine block’s neighbors are all mine blocks or inconclusive blocks, we cannot update any hint block’s warn value. So if mines are too dense, influence chains are usually short. \\
 	For the \hyperref[secondpart]{second part}, it is more about how long would a chain be. The longer a chain is, the more time we need to combine those hints. \\
 	
 	\item {How does the length of the chain of influence influence the efficiency of your solver?} \\
@@ -305,6 +306,24 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 \section{Bonus: Dealing with Uncertainty}
 \begin{enumerate}
 	\label{zhichao2}
-	\item {When a cell is selected to be uncovered, if the cell is ‘clear’ you only reveal a clue about the surrounding cells with some probability. \textit{In this case, the information you receive is accurate, but it is uncertain when you will receive the information.}}
+	\item {When a cell is selected to be uncovered, if the cell is ‘clear’ you only reveal a clue about the surrounding cells with some probability. \textit{In this case, the information you receive is accurate, but it is uncertain when you will receive the information.}} \\
+	\\
+	When it is uncertain about the time to receive the information, we explore these blocks and get to know they are safe. In the following execution of our algorithm, we just ignore the blocks without feedback, because they do not provide any useful information. \\
+	For the experiment part, we set the probability of revealing a clue from 0.06 to 0.15, and repeatedly solve the maze using our algorithm. The plot is showed below.
+	\begin{figure}[H]
+		\minipage{0.49\textwidth}
+		\includegraphics[width=\textwidth]{../pics/plt1.png}
+		\caption{\label{fig:plt1} The influence of different uncertain rate on open rate under different mine density.}
+		\endminipage\hfill
+		\minipage{0.49\textwidth}
+		\includegraphics[width=\textwidth]{../pics/plt2.png}
+		\caption{\label{fig:plt2} The influence of different uncertain rate on open rate under different mine density.}
+		\endminipage
+	\end{figure}
+
+	\item {When a cell is selected to be uncovered, the revealed clue is less than or equal to the true number of surrounding mines (chosen uniformly at random). \textit{In this case, the clue has some probability of underestimating the number of surrounding mines. Clues are always optimistic.}}
+	\item {When a cell is selected to be uncovered, the revealed clue is greater than or equal to the true number of surrounding mines (chosen uniformly at random). \textit{In this case, the clue has some probability of overestimating the number of surrounding mines. Clues are always cautious.}}\\
+	\\
+	For the second and third scenarios, we use conditional probability $ P(hint|clue) $ to represent our deduction process. But we did not have enough time to do experiments on these two scenarios.
 \end{enumerate}
 \end{document}
