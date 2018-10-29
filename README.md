@@ -5,16 +5,17 @@ This is the git repository for **Assignment 2 - MineSweeper, Inference-Informed 
 
 #### File Structure  
 ```
-├── codes # is for storing codes
+├── codes				# is for storing codes
 │   └── frame.py 		# basic framwork for minesweeper
 │   └── tile.py 		# pixel image of board
 │   └── solution.py 	# the minesweeper solver
 │   └── gui.py			# graphics user interface 
 │   └── uncertainty.py	# solver that can deal with uncertainty
-├── docs # is for storing documents (eg. API documents, reports).  
+├── docs 				# is for storing documents (eg. API documents, reports).  
 │   └── description.md	# documentation of this project
 │   └── report.pdf 		# the report of this project
-├── pics # is for storing pictures and figures that are used in the report
+│   └── Solution Algorithm Explanation.html 	# a very detailed explanation on how we implement this program
+├── pics 				# is for storing pictures and figures that are used in the report
 └── README.md
 ```
 

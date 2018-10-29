@@ -44,7 +44,7 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 	\hline
 	\makecell[c]{Name \\ RUID} & Workload \\
 	\hline
-	\makecell[c]{Haoyang Zhang \\ 188008687} & {Implemented the minesweeper solver. Finished the writing of report for most of the questions.} \\
+	\makecell[c]{Haoyang Zhang \\ 188008687} & {Implemented the minesweeper solver. Finished the writing of report for most of the questions. Wrote ``Solution Algorithm Explanation.html'' and ``uncertainty.html'' which are two documents about our algorithm} \\
 	\hline
 	\makecell[c]{Han Wu \\ 189008460} & {Ran tests and generated figures for question \hyperref[han]{2.4}. Finished the writing of report for question \hyperref[han]{2.4}} \\
 	\hline
@@ -95,7 +95,7 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 	
 	Sure that there are many other things we might make deductions, for instance, trying to combine it with a clue we have already known. However, there is a reason for stopping combining clues. Combining clues is especially time-consuming without a proper direction or heuristic. For a given knowledge base, the statements we can deduce do not change, even if we add more hints into the knowledge base. Therefore, it is not economical to spend so much time combining clues when we can explore and make deductions from somewhere else, because new hints may easily lead to exactly the same statements.
 	
-	If we have nothing else to do, there are still several ways to combine them (the detailed introduction is in ``$\backslash$docs$\backslash$Solution Algorithm Explanation.html''). The structure of some hints (value relationship and geometric relationship) tends to be solvable, and then we can focus on those structures. At least, we can use proof by contradiction to combine a large number of hints at one time, though it is also time-consuming.
+	If we have nothing else to do, there are still several ways to combine them (the detailed introduction is in \href{run:Solution Algorithm Explaination.html}{``$ \backslash $docs$ \backslash $Solution Algorithm Explaination.html''.}). The structure of some hints (value relationship and geometric relationship) tends to be solvable, and then we can focus on those structures. At least, we can use proof by contradiction to combine a large number of hints at one time, though it is also time-consuming.
 	
 	\item {Decisions: Given a current state of the board, and a state of knowledge about the board, how does your program decide which cell to search next? Are there any risks, and how do you face them?} \\
 	\\
@@ -106,6 +106,7 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 		\item {Use constraint satisfaction and proof by contradiction to find a conclusive block. \\ Pattern recognition could miss complex solvable structures, and therefore, we use the former one to improve. But generally, it takes too much time. Also, it has limitations. For example, it chooses some blocks randomly to search rather than choose all inconclusive blocks. Note that this limitation also leads to the missing of some solvable blocks.}
 		\item {Should all attempts above fail, find a block that is worthy to take the risk to open. \\ The block should be either with the lowest risk, or ``well-paid''. A ``well-paid'' block is a block whose clue is expected to play an important role in the solving process in the future if the block itself is not a mine.}
 	\end{enumerate}
+	A very detailed documentation about the details and insights of our algorithm is in \href{run:Solution Algorithm Explaination.html}{``$ \backslash $docs$ \backslash $Solution Algorithm Explaination.html''.} \\
 	
 	\label{han}
 	\item {Performance: For a reasonably-sized board and a reasonable number of mines, include a play-by-play progression to completion or loss. Are there any points where your program makes a decision that you don’t agree with? Are there any points where your program made a decision that surprised you? Why was your program able to make that decision?} \\
@@ -201,8 +202,10 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 		\caption{\label{fig:Mine-Density-against-Victory-Rate}Mine Density against Victory Rate.}
 	\end{figure}
 	
-	We have come to the conclusion that our program can confidently solve boards of less than $ 20\% $ mine density. 
-	As mine density increases, it takes more time to make a deduction. At the same time, there are more unsolvable scenarios where we have to take risks to explore new blocks. That’s where our program begins to struggle.
+	We have come to the conclusion that our program can confidently solve boards of less than $ 20\% $ mine density. \\ 
+	As mine density increases, it takes more time to make a deduction. At the same time, there are more unsolvable scenarios where we have to take risks to explore new blocks. That’s where our program begins to struggle. \\
+	Apart from the victory rate, we also did several experiments on open rate while mine density is $ 20\% $. The results of open rate are $ 97.1389\% $ if we ignore results with open rate less than $ 5\% $, and $ 67.0673\% $ if we do not ignore. \\
+	From these results, we can conclude that our solver actually has a pretty consistent performance in solving boards of $ 20\% $ mine density, because our solver would  open $ 97\% $ of the board on average if we have a good opening. \\
 	
 	\item {Efficiency: What are some of the space or time constraints you run into in implementing this program? Are these problem specific constraints, or implementation specific constraints? In the case of implementation constraints, what could you improve on?} \\
 	\\
@@ -222,7 +225,7 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 		\item {Use more space to store the unsolvable override relations. Ignore those relations when solving override relations.}
 		\item {Instead of searching the whole board when ``step-by-step'' fails, update relations in ``step-by-step''. But it will increase the time complexity of ``step-by-step'' and may lead to the result that some blocks are updated too frequently. \\ 
 		``keep-in-step'' can be improved in the same way as we could use to improve ``step-aside''. \\
-		``elixir'' is actually problem-specific constraints because minesweeper is an NP-complete problem. But still, we can use some limitations to prevent it from taking too much time. (Details are in ``$ \backslash $docs$ \backslash $Solution Algorithm Explaination.html''.) \\
+		``elixir'' is actually problem-specific constraints because minesweeper is an NP-complete problem. But still, we can use some limitations to prevent it from taking too much time. (Details are in \href{run:Solution Algorithm Explaination.html}{``$ \backslash $docs$ \backslash $Solution Algorithm Explaination.html''.}) \\
 		``leap-of-faith'' can also be preprocessed in ``step-by-step'', but it still leads to frequently updating.}
 	\end{enumerate}
 	
@@ -260,7 +263,7 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 		We do not know whether the situation listed in \hyperref[step-d]{(iv)} is accessible, but we also include it in this report.
 	\end{enumerate}
 	
-	For the \hyperref[secondpart]{second part}, refer to “Solution Algorithm Explaination.html”.
+	For the \hyperref[secondpart]{second part}, refer to \href{run:Solution Algorithm Explaination.html}{``$ \backslash $docs$ \backslash $Solution Algorithm Explaination.html''.}
 	
 	\item {What influences or controls the length of the longest chain of influence when solving a certain board?} \\
 	\\
@@ -270,31 +273,31 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 	\item {How does the length of the chain of influence influence the efficiency of your solver?} \\
 	\\
 	For the \hyperref[firstpart]{first part}, it will not influent the efficiency. Actually, the more we depend on it, the less we will depend on the second part. The longer the chain of influence is, the faster the agents can be. \\
-	However, for the \hyperref[secondpart]{second part}, as a chain gets longer and longer, it takes more and more time to combine hints, and it tends to be less and less probable to be solved. (Find more in “Solution Algorithm Explanation.html”.\\
+	However, for the \hyperref[secondpart]{second part}, as a chain gets longer and longer, it takes more and more time to combine hints, and it tends to be less and less probable to be solved. (Find more in \href{run:Solution Algorithm Explaination.html}{``$ \backslash $docs$ \backslash $Solution Algorithm Explaination.html''.}\\
 	
 	\item {Experiment. Can you find a board that yields particularly long chains of influence? How does this vary with the total number of mines?} \\
 	\\
 	Yes. For example, a $ 64 \times 64 $ board with 10 mines. In this case, the chains of influence would be very long. 
 	\\
-	A nearly-empty board (without mines) yields pretty long chains. Because “step-by-step” is totally based on the notion of influence chain and in this case, this board can be solved only based on “step-by-step”. 
+	A nearly-empty board (without mines) yields pretty long chains. Because ``step-by-step'' is totally based on the notion of influence chain and in this case, this board can be solved only based on ``step-by-step''. 
 	\\
-	As mine density goes up, “step-by-step” tends to be stuck in dead ends. Therefore, the length of chains decreases when mine density increases. Note that if the total number of mines and board size increase at the same time (density staying unchanged), the length of the chain will increase, because there are more blocks that can be processed by “step-by-step”.
+	As mine density goes up, ``step-by-step'' tends to be stuck in dead ends. Therefore, the length of chains decreases when mine density increases. Note that if the total number of mines and board size increase at the same time (density staying unchanged), the length of the chain will increase, because there are more blocks that can be processed by ``step-by-step''.
 	\\
 	\item {Experiment. Spatially, how far can the influence of a given cell travel?} \\
 	\\
-	The given cell can travel across the whole board. Because a board nearly empty can be completely solved by “step-by-step”.
+	The given cell can travel across the whole board. Because a board nearly empty can be completely solved by ``step-by-step''.
 	\\
 	\item {Can you use this notion of minimizing the length of chains of influence to inform the decisions you make, to try to solve the board more efficiently?} \\
 	\\
-	For the \hyperref[firstpart]{first part}, we would like the length to be as long as it can be. In this scenario, we present the whole board as matrices and use “step-by-step” to spread any newly conclude blocks’ information to their neighbors, and neighbors of neighbors.
+	For the \hyperref[firstpart]{first part}, we would like the length to be as long as it can be. In this scenario, we present the whole board as matrices and use ``step-by-step'' to spread any newly conclude blocks’ information to their neighbors, and neighbors of neighbors.
 	\\
 	For the \hyperref[secondpart]{second part}, we limit the maximum length. \\
-	“Step-aside” is limited into 5*5 range. Many “cascaded” override relations are ignored because they are usually unsolvable. \\
-	“Keep-in-step” is limited into 3*3 range. As 2 twin blocks get further, they will share fewer common blocks. In this case, a large number of unique neighbors usually lead to an unsolvable situation. \\
-	When using “Elixir”, the larger the range is, the more likely that it is solvable. But there is a downside. A large range will inevitably make it spend an unacceptable time. \\
+	``Step-aside'' is limited into 5*5 range. Many ``cascaded'' override relations are ignored because they are usually unsolvable. \\
+	``Keep-in-step'' is limited into 3*3 range. As 2 twin blocks get further, they will share fewer common blocks. In this case, a large number of unique neighbors usually lead to an unsolvable situation. \\
+	When using ``Elixir'', the larger the range is, the more likely that it is solvable. But there is a downside. A large range will inevitably make it spend an unacceptable time. \\
 	Therefore, we choose a range of 9*9 as the limitation for 2 reasons: 
 	\begin{enumerate}
-		\item {It should be larger than “step-aside” and “keep-in-step”, otherwise nearly all solvable structures will have been solved by them.}
+		\item {It should be larger than ``step-aside'' and ``keep-in-step'', otherwise nearly all solvable structures will have been solved by them.}
 		\item {With a limitation of 9*9, it usually takes about 1 second to solve each block, which is acceptable.}
 	\end{enumerate}
 
@@ -304,6 +307,7 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 \end{enumerate}
 
 \section{Bonus: Dealing with Uncertainty}
+A detailed explanation of this part is in \href{run:Uncertainty.html}{``$ \backslash $docs$ \backslash $uncertainty.html''.}
 \begin{enumerate}
 	\label{zhichao2}
 	\item {When a cell is selected to be uncovered, if the cell is ‘clear’ you only reveal a clue about the surrounding cells with some probability. \textit{In this case, the information you receive is accurate, but it is uncertain when you will receive the information.}} \\
