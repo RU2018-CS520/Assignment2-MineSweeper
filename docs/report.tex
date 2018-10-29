@@ -119,7 +119,7 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 		\caption{\label{fig:1} A $ 10 \times 10 $ board. }
 		\caption*{(This screenshot is taken after we have done the experiment and the GUI has been changed since then, so the screenshots below may look a little different from this one.)}
 	\end{figure}
-	As Figure \ref{fig:1} shown, it is a 10 by 10 board. There are 100 cells on the board. We use (i, j) to represent the cell in the board. ``i'' represents the row of the cell and ``j'' represents the column of the cell. For example, (1, 1) represents the cell in the upper left corner and (10, 1) represents the cell in the lower left corner. The coordinate of the cell which is uncovered in this figure is (10, 6).
+	As Figure \ref{fig:1} shown, it is a $ 10 \times 10 $ board. There are 100 cells on the board. We use $ (i, j) $ to represent the cell in the board. ``$ i $'' represents the row of the cell and ``$ j $'' represents the column of the cell. For example, (1, 1) represents the cell in the upper left corner and (10, 1) represents the cell in the lower left corner. The coordinate of the cell which is uncovered in this figure is (10, 6).
 	
 	The first decision which the algorithm surprises me is step 13. The state of step 12 is shown below as Figure \ref{fig:2}.
 	
@@ -292,13 +292,13 @@ In this group project, we implemented a minesweeper solver that far exceeded our
 	For the \hyperref[firstpart]{first part}, we would like the length to be as long as it can be. In this scenario, we present the whole board as matrices and use ``step-by-step'' to spread any newly conclude blocks’ information to their neighbors, and neighbors of neighbors.
 	\\
 	For the \hyperref[secondpart]{second part}, we limit the maximum length. \\
-	``Step-aside'' is limited into 5*5 range. Many ``cascaded'' override relations are ignored because they are usually unsolvable. \\
-	``Keep-in-step'' is limited into 3*3 range. As 2 twin blocks get further, they will share fewer common blocks. In this case, a large number of unique neighbors usually lead to an unsolvable situation. \\
+	``Step-aside'' is limited into $ 5 \times 5 $ range. Many ``cascaded'' override relations are ignored because they are usually unsolvable. \\
+	``Keep-in-step'' is limited into $ 3 \times 3 $ range. As 2 twin blocks get further, they will share fewer common blocks. In this case, a large number of unique neighbors usually lead to an unsolvable situation. \\
 	When using ``Elixir'', the larger the range is, the more likely that it is solvable. But there is a downside. A large range will inevitably make it spend an unacceptable time. \\
-	Therefore, we choose a range of 9*9 as the limitation for 2 reasons: 
+	Therefore, we choose a range of $ 9 \times 9 $ as the limitation for 2 reasons: 
 	\begin{enumerate}
 		\item {It should be larger than ``step-aside'' and ``keep-in-step'', otherwise nearly all solvable structures will have been solved by them.}
-		\item {With a limitation of 9*9, it usually takes about 1 second to solve each block, which is acceptable.}
+		\item {With a limitation of $ 9 \times 9 $, it usually takes about 1 second to solve each block, which is acceptable.}
 	\end{enumerate}
 
 	\item {Is solving minesweeper hard?} \\
